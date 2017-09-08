@@ -6,12 +6,9 @@ def print_selected(): {
     print("Combobox changed")
 }
 
-
 root = Tk()
 root.title("Battery Testing Application v0.1")
 content = ttk.Frame(root)
-
-
 
 mode = StringVar()
 simul_option = ttk.Radiobutton(content, text='Test Banks Simul', variable=mode, value='simul')
@@ -25,10 +22,10 @@ power_option = ttk.Radiobutton(content, text='Pow Input', variable=run_param, va
 static_option = ttk.Radiobutton(content, text='Use PreProg', variable=run_param, value='preprog_selected')
 
 
-countryvar = StringVar()
-country = ttk.Combobox(content, textvariable=countryvar)
-country.bind('<<ComboboxSelected>>', print_selected())
-country['values'] = ('Pre-defined 1', 'Pre-defined 2', 'Pre-defined 3')
+predefinedmodevar = StringVar()
+predef = ttk.Combobox(content, textvariable=predefinedmodevar)
+predef.bind('<<ComboboxSelected>>', print_selected())
+predef['values'] = ('Pre-defined 1', 'Pre-defined 2', 'Pre-defined 3')
 
 namelbl = ttk.Label(content, text="Name")
 name = ttk.Entry(content)
@@ -54,9 +51,6 @@ onevar.set(True)
 twovar.set(False)
 threevar.set(True)
 
-#one = ttk.Checkbutton(content, text="One", variable=onevar, onvalue=True)
-#two = ttk.Checkbutton(content, text="Two", variable=twovar, onvalue=True)
-#hree = ttk.Checkbutton(content, text="Three", variable=threevar, onvalue=True)
 ok = ttk.Button(content, text="Begin Testing")
 cancel = ttk.Button(content, text="Stop")
 
@@ -84,12 +78,9 @@ static_option.grid(column=4, row=7)
 
 ok.grid(column=7, row=5)
 cancel.grid(column=7, row=6)
-#namelbl.grid(column=5, row=0, columnspan=2)
-#name.grid(column=5, row=1, columnspan=2)
 
 content.grid(column=0, row=0)
-#frame.grid(column=0, row=0, columnspan=3, rowspan=2)
-country.grid(column=5, row=7, columnspan=2)
+predef.grid(column=5, row=7, columnspan=2)
 contact_info.grid(column=6, row=8, columnspan=3)
 
 root.mainloop()
