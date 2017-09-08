@@ -32,6 +32,7 @@ name = ttk.Entry(content)
 
 contact_info = ttk.Label(content, text="Built by Dan Harris - dan.harris@gmail.com")
 
+input_header = ttk.Label(content, text="SELECT INPUT TYPE")
 testing_status = ttk.Label(content, text="TESTING STATUS: INACTIVE ")
 
 bank_1_current_output_label = ttk.Label(content, text="B1 Curr: 5")
@@ -70,17 +71,18 @@ bank_2_load_output_label.grid(column=4, row=3)
 bank_2_heartbeat.grid(column=7, row=2)
 
 
-run_val.grid(column=6, row=4)
-volt_option.grid(column=4, row=4)
-current_option.grid(column=4, row=5)
-power_option.grid(column=4, row=6)
-static_option.grid(column=4, row=7)
+run_val.grid(column=6, row=5)
+input_header.grid(column=4, row=4)
+volt_option.grid(column=4, row=5)
+current_option.grid(column=4, row=6)
+power_option.grid(column=4, row=7)
+static_option.grid(column=4, row=8)
 
 ok.grid(column=7, row=5)
 cancel.grid(column=7, row=6)
 
 content.grid(column=0, row=0)
-predef.grid(column=5, row=7, columnspan=2)
-contact_info.grid(column=6, row=8, columnspan=3)
+predef.grid(column=5, row=8, columnspan=2)
+contact_info.grid(column=6, row=9, columnspan=3)
 
 root.mainloop()
