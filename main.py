@@ -37,10 +37,6 @@ def ui_refresh():
     bank_2_volt_output_var.set("5")
     bank_2_load_output_var.set("6")
 
-
-    #This is needed to make sure another call to this happens in 5 sec (or .5 sec if 500)
-    root.after(5000, ui_refresh)
-
     #How do we want to handle if the connection to a bank breaks? We should put that code below
 
     # Doing a basic check to see if a bank is online or offline
@@ -53,6 +49,11 @@ def ui_refresh():
     else:
         bank_2_heartbeat_var.set("Offline")
 
+
+    #This is needed to make sure another call to this happens in 5 sec (or .5 sec if 500)
+    root.after(5000, ui_refresh)
+
+   
 
 
 def print_selected():
