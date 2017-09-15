@@ -34,12 +34,17 @@ sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
 #  Ultimately your call but my thought is to return True if we can successfully connect to the Bank IEEE interface and
 # False if we cannot
 def getBank1ConnStatus():
+    Checkline = queryTDI_ser1(str("ID?\n"))
+    """
+    #Old way 
     ser1.open()
     sio1.write(str("ID?\n"))
     sio1.flush() # it is buffering. required to get the data out *now*
     time.sleep(0.05)
     Checkline = str(ser1.readline())
-    ser1.close()
+    """
+
+    #ser1.close()
     if Checkline[2:-5] == 'WCL 100-1000-12000':
         return True
     else :
@@ -50,13 +55,15 @@ def getBank2ConnStatus():
     return False
 
 def getBank1Voltage():
+    Checkline = queryTDI_ser1(str("V?\n"))
+    """
     ser1.open()
     sio1.write(str("V?\n"))
     sio1.flush() # it is buffering. required to get the data out *now*
     time.sleep(0.05)
     Checkline = str(ser1.readline())
     ser1.close()
-   
+   """
     lefttext=Checkline.partition(" v")[0]
     return lefttext[2:]
     
@@ -66,13 +73,15 @@ def getBank2Voltage():
     return 6
 
 def getBank1Current():
+    Checkline = queryTDI_ser1(str("I?\n"))
+    """
     ser1.open()
     sio1.write(str("I?\n"))
     sio1.flush() # it is buffering. required to get the data out *now*
     time.sleep(0.05)
     Checkline = str(ser1.readline())
     ser1.close()
-   
+    """
     lefttext=Checkline.partition(" a")[0]
     return lefttext[2:]
 
@@ -80,16 +89,31 @@ def getBank2Current():
     return 8
 
 def getBank1Load():
+    Checkline = queryTDI_ser1(str("P?\n"))
+    """
     ser1.open()
     sio1.write(str("P?\n"))
     sio1.flush() # it is buffering. required to get the data out *now*
     time.sleep(0.05)
     Checkline = str(ser1.readline())
     ser1.close()
-   
+   """
     lefttext=Checkline.partition(" w")[0]
     return lefttext[2:]
 
 def getBank2Load():
     return 11
 
+def queryTDI_ser1(write_str):
+    try:
+        if not ser1.is_open:
+            ser1.open()
+
+        sio1.write(write_str)
+        sio1.flush() # it is buffering. required to get the data out *now*
+        time.sleep(0.05)
+        strout = str(ser1.readline())
+        ser1.close()
+    except:
+        strout = ''
+    return strout
