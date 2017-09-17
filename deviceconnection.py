@@ -11,25 +11,31 @@ import serial
 import io
 import time
  
-#Static definition of COM Ports, maybe more elegant solution is possible in the future. 
-Bank1_Port='COM8' # This is the port of the WCL232 100-1000-12000
-Bank2_Port='COM7'
+setup_complete = False
 
-#Define Serial Aliases 
-ser1 = serial.Serial()
-ser1.baudrate = 9600
-ser1.port = Bank1_Port
-ser1.timeout = 1
+def setup_serial_ports():
+    try:
+        #Static definition of COM Ports, maybe more elegant solution is possible in the future. 
+        Bank1_Port='COM8' # This is the port of the WCL232 100-1000-12000
+        Bank2_Port='COM7'
+
+        #Define Serial Aliases 
+        ser1 = serial.Serial()
+        ser1.baudrate = 9600
+        ser1.port = Bank1_Port
+        ser1.timeout = 1
 
 
 
-ser2 = serial.Serial()
-ser2.baudrate = 9600
-ser2.port = Bank2_Port
-ser2.timeout = 1
+        ser2 = serial.Serial()
+        ser2.baudrate = 9600
+        ser2.port = Bank2_Port
+        ser2.timeout = 1
 
-sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
-
+        sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
+        setup_complete = True
+    except:
+        pass
 
 #  Ultimately your call but my thought is to return True if we can successfully connect to the Bank IEEE interface and
 # False if we cannot
@@ -106,10 +112,37 @@ def getBank2Load():
 
 def queryTDI_ser1(write_str):
     try:
+        if not setup_complete:
+            setup_serial_ports()
         if not ser1.is_open:
             ser1.open()
 
         sio1.write(write_str)
+        sio1.flush() # it is buffering. required to get the data out *now*
+        time.sleep(0.05)
+        strout = str(ser1.readline())
+        ser1.close()
+    except:
+        strout = ''
+    return strout
+
+
+def set_TDI_state_ser1(curr,volt,power,mode):
+    try:
+        if not ser1.is_open:
+            ser1.open()
+        #Run a switch case on mode to set the value 
+        if mode == 1:
+            sio1.write(str("CI"+curr+"\n"))
+        elif mode == 2:
+            sio1.write(str("CV"+volt+"\n"))
+        elif mode == 3:
+            sio1.write(str("CP"+power+"\n"))
+        else:
+            pass
+
+        #Write the current command
+        sio1.write(str("P\n"))
         sio1.flush() # it is buffering. required to get the data out *now*
         time.sleep(0.05)
         strout = str(ser1.readline())
