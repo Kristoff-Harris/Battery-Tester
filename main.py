@@ -127,7 +127,7 @@ predef['values'] = ('Pre-defined 1', 'Pre-defined 2', 'Pre-defined 3')
 namelbl = ttk.Label(content, text="Name")
 name = ttk.Entry(content)
 
-contact_info = ttk.Label(content, text="Built by Dan Harris")
+contact_info = ttk.Label(content, text="Built by Chris and Dan Harris")
 
 input_header = ttk.Label(content, text="SELECT INPUT TYPE")
 testing_status = ttk.Label(content, text="TESTING STATUS: INACTIVE ")

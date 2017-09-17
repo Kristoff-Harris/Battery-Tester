@@ -5,8 +5,6 @@
 #
 #-------------------------------------------------------------------------------------------------------------
 
-
-#import [Library needed for IEEE if not serial]
 import serial
 import io
 import time
@@ -42,15 +40,6 @@ def setup_serial_ports():
 # False if we cannot
 def getBank1ConnStatus():
     Checkline = queryTDI_ser1(str("ID?\n"))
-    """
-    #Old way 
-    ser1.open()
-    sio1.write(str("ID?\n"))
-    sio1.flush() # it is buffering. required to get the data out *now*
-    time.sleep(0.05)
-    Checkline = str(ser1.readline())
-    """
-
     if Checkline[2:-5] == 'WCL 100-1000-12000':
         return True
     else :
