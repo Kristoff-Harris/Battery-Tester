@@ -59,6 +59,11 @@ def ui_refresh():
 def print_selected():
     print("Combobox changed")
 
+    set_TDI_state_ser1(0,0,0,1)
+    ## Call to zero load
+    # State of the combo box will need to be known later but for now we just want to put
+    # the load bank in a safe mode
+
 # Fires when someone clicks the "start" button
 def onClickStart():
     print("Start Button Pressed")
@@ -66,6 +71,8 @@ def onClickStart():
 # Fires when someone clicks the "stop" button
 def onClickStop():
     print("Stop Button Pressed")
+    ## Call to zero load
+    ## Call to open contactor
 
 
 # This checks the value of the user input box for Voltage Current or Power

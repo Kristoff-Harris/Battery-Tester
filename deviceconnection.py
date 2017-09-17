@@ -33,6 +33,7 @@ def setup_serial_ports():
         ser2.timeout = 1
 
         sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
+        sio2 = io.TextIOWrapper(io.BufferedRWPair(ser2, ser2,1),encoding='ascii')
         setup_complete = True
     except:
         pass
@@ -50,65 +51,50 @@ def getBank1ConnStatus():
     Checkline = str(ser1.readline())
     """
 
-    #ser1.close()
     if Checkline[2:-5] == 'WCL 100-1000-12000':
         return True
     else :
         return False
 
 def getBank2ConnStatus():
-    # TODO  put code to do a healthcheck on Bank2
-    return False
+    Checkline = queryTDI_ser2(str("ID?\n"))
+
+    if Checkline[2:3] == 'W':  #Have to see how the other load bank responds to this request on Telnet (to get more specific)
+        return True
+    else :
+        return False
 
 def getBank1Voltage():
     Checkline = queryTDI_ser1(str("V?\n"))
-    """
-    ser1.open()
-    sio1.write(str("V?\n"))
-    sio1.flush() # it is buffering. required to get the data out *now*
-    time.sleep(0.05)
-    Checkline = str(ser1.readline())
-    ser1.close()
-   """
     lefttext=Checkline.partition(" v")[0]
     return lefttext[2:]
     
     
 
 def getBank2Voltage():
-    return 6
+    Checkline = queryTDI_ser2(str("V?\n"))
+    lefttext=Checkline.partition(" v")[0]
+    return lefttext[2:]
 
 def getBank1Current():
     Checkline = queryTDI_ser1(str("I?\n"))
-    """
-    ser1.open()
-    sio1.write(str("I?\n"))
-    sio1.flush() # it is buffering. required to get the data out *now*
-    time.sleep(0.05)
-    Checkline = str(ser1.readline())
-    ser1.close()
-    """
     lefttext=Checkline.partition(" a")[0]
     return lefttext[2:]
 
 def getBank2Current():
-    return 8
+    Checkline = queryTDI_ser2(str("I?\n"))
+    lefttext=Checkline.partition(" a")[0]
+    return lefttext[2:]
 
 def getBank1Load():
     Checkline = queryTDI_ser1(str("P?\n"))
-    """
-    ser1.open()
-    sio1.write(str("P?\n"))
-    sio1.flush() # it is buffering. required to get the data out *now*
-    time.sleep(0.05)
-    Checkline = str(ser1.readline())
-    ser1.close()
-   """
     lefttext=Checkline.partition(" w")[0]
     return lefttext[2:]
 
 def getBank2Load():
-    return 11
+    Checkline = queryTDI_ser2(str("P?\n"))
+    lefttext=Checkline.partition(" w")[0]
+    return lefttext[2:]
 
 def queryTDI_ser1(write_str):
     try:
@@ -127,6 +113,22 @@ def queryTDI_ser1(write_str):
     return strout
 
 
+def queryTDI_ser2(write_str):
+    try:
+        if not setup_complete:
+            setup_serial_ports()
+        if not ser2.is_open:
+            ser2.open()
+
+        sio2.write(write_str)
+        sio2.flush() # it is buffering. required to get the data out *now*
+        time.sleep(0.05)
+        strout = str(ser2.readline())
+        ser2.close()
+    except:
+        strout = ''
+    return strout
+
 def set_TDI_state_ser1(curr,volt,power,mode):
     try:
         if not ser1.is_open:
@@ -142,11 +144,32 @@ def set_TDI_state_ser1(curr,volt,power,mode):
             pass
 
         #Write the current command
-        sio1.write(str("P\n"))
         sio1.flush() # it is buffering. required to get the data out *now*
         time.sleep(0.05)
-        strout = str(ser1.readline())
         ser1.close()
+    except:
+        pass
+    return 
+
+
+def set_TDI_state_ser2(curr,volt,power,mode):
+    try:
+        if not ser1.is_open:
+            ser2.open()
+        #Run a switch case on mode to set the value 
+        if mode == 1:
+            sio2.write(str("CI"+curr+"\n"))
+        elif mode == 2:
+            sio2.write(str("CV"+volt+"\n"))
+        elif mode == 3:
+            sio2.write(str("CP"+power+"\n"))
+        else:
+            pass
+
+        #Write the current command
+        sio2.flush() # it is buffering. required to get the data out *now*
+        time.sleep(0.05)
+        ser2.close()
     except:
         pass
     return 
