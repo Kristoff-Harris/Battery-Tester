@@ -148,5 +148,5 @@ def set_TDI_state_ser1(curr,volt,power,mode):
         strout = str(ser1.readline())
         ser1.close()
     except:
-        strout = ''
-    return strout
+        pass
+    return 
