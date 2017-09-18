@@ -60,6 +60,7 @@ def print_selected():
     print("Combobox changed")
 
     set_TDI_state_ser1(0,0,0,1)
+    set_TDI_state_ser2(0,0,0,1)
     ## Call to zero load
     # State of the combo box will need to be known later but for now we just want to put
     # the load bank in a safe mode
@@ -67,12 +68,24 @@ def print_selected():
 # Fires when someone clicks the "start" button
 def onClickStart():
     print("Start Button Pressed")
+    #Set the current to zero amps
+    set_TDI_state_ser1(0,0,0,1)
+    set_TDI_state_ser2(0,0,0,1)
+    #Close both contactors
+    close_TDI1_contactor()
+    close_TDI2_contactor()
+    #If the combobox is set to a script fire that off
+
 
 # Fires when someone clicks the "stop" button
 def onClickStop():
     print("Stop Button Pressed")
+    set_TDI_state_ser1(0,0,0,1)
+    set_TDI_state_ser2(0,0,0,1)
     ## Call to zero load
     ## Call to open contactor
+    open_TDI1_contactor()
+    open_TDI2_contactor()
 
 
 # This checks the value of the user input box for Voltage Current or Power

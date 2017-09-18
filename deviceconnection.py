@@ -8,6 +8,7 @@
 import serial
 import io
 import time
+import load_balance as lb
  
 setup_complete = False
 
@@ -162,3 +163,27 @@ def set_TDI_state_ser2(curr,volt,power,mode):
     except:
         pass
     return 
+
+def open_TDI1_contactor():
+    try:
+        sio1.write(str("LOAD OFF\n"))
+    except:
+        pass
+
+def open_TDI2_contactor():
+    try:
+        sio2.write(str("LOAD OFF\n"))
+    except:
+        pass
+
+def close_TDI1_contactor():
+    try:
+        sio1.write(str("LOAD ON\n"))
+    except:
+        pass
+
+def close_TDI2_contactor():
+    try:
+        sio2.write(str("LOAD ON\n"))
+    except:
+        pass
