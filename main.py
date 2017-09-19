@@ -22,20 +22,29 @@ def validate_user_value(self,txt):
 
 def ui_refresh():
     print("in the poll_sources function")
-    print("Bank1Voltage == " + str(dc.getBank1Voltage()))
-    print("Bank2Voltage == " + str(dc.getBank2Voltage()))
-    print("Bank1Current == " + str(dc.getBank1Current()))
-    print("Bank2Current == " + str(dc.getBank2Current()))
-    print("Bank1Load == " + str(dc.getBank1Load()))
-    print("Bank2Load == " + str(dc.getBank2Load()))
+  
+    # Getting the bank 1 and bank 2 values upfront so we don't have to query them multiple times within the ui_refresh method
+    bank1v = str(dc.getBank1Voltage())
+    bank2v = str(dc.getBank2Voltage())
+    bank1c = str(dc.getBank1Current())
+    bank2c = str(dc.getBank1Current())
+    bank1l = str(dc.getBank1Load())
+    bank2l = str(dc.getBank2Load())
+    
+    print("Bank1Voltage == " + bank1v)
+    print("Bank2Voltage == " + bank2v)
+    print("Bank1Current == " + bank1c)
+    print("Bank2Current == " + bank2c)
+    print("Bank1Load == " + bank1l)
+    print("Bank2Load == " + bank12)
 
     # Assigning the UI values
-    bank_1_current_output_var.set("1")
-    bank_1_volt_output_var.set("2")
-    bank_1_load_output_var.set("3")
-    bank_2_current_output_var.set("4")
-    bank_2_volt_output_var.set("5")
-    bank_2_load_output_var.set("6")
+    bank_1_current_output_var.set(banklc)
+    bank_1_volt_output_var.set(bank1v)
+    bank_1_load_output_var.set(bank1l)
+    bank_2_current_output_var.set(bank2c)
+    bank_2_volt_output_var.set(bank2v)
+    bank_2_load_output_var.set(bank2l)
 
     #How do we want to handle if the connection to a bank breaks? We should put that code below
 
