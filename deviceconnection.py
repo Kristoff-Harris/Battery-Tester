@@ -37,7 +37,10 @@ def setup_serial_ports():
         sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
         sio2 = io.TextIOWrapper(io.BufferedRWPair(ser2, ser2,1),encoding='ascii')
         setup_complete = True
-    except:
+        
+    # Dan, If you're interested in seeing what the exception was, use this syntax. It may be helpful for debugging
+    except Exception as e:
+        print(e)
         pass
 
 #  Ultimately your call but my thought is to return True if we can successfully connect to the Bank IEEE interface and
