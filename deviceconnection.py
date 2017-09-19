@@ -25,13 +25,14 @@ def setup_serial_ports():
         ser1.baudrate = 9600
         ser1.port = Bank1_Port
         ser1.timeout = 1
-
+        ser1.open()
 
 
         ser2 = serial.Serial()
         ser2.baudrate = 9600
         ser2.port = Bank2_Port
         ser2.timeout = 1
+        ser2.open()
 
         sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
         sio2 = io.TextIOWrapper(io.BufferedRWPair(ser2, ser2,1),encoding='ascii')
