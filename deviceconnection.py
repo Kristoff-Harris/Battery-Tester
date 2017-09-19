@@ -9,10 +9,12 @@ import serial
 import io
 import time
 import load_balance as lb
- 
+
+global setup_complete
 setup_complete = False
 
 def setup_serial_ports():
+    global setup_complete
     try:
         #Static definition of COM Ports, maybe more elegant solution is possible in the future. 
         Bank1_Port='COM8' # This is the port of the WCL232 100-1000-12000
@@ -90,7 +92,7 @@ def queryTDI_ser1(write_str):
     try:
         if not setup_complete:
             setup_serial_ports()
-        if not ser1.is_open:
+        if not ser1.is_open():
             ser1.open()
 
         sio1.write(write_str)
@@ -107,7 +109,7 @@ def queryTDI_ser2(write_str):
     try:
         if not setup_complete:
             setup_serial_ports()
-        if not ser2.is_open:
+        if not ser2.is_open():
             ser2.open()
 
         sio2.write(write_str)
@@ -144,7 +146,7 @@ def set_TDI_state_ser1(curr,volt,power,mode):
 
 def set_TDI_state_ser2(curr,volt,power,mode):
     try:
-        if not ser1.is_open:
+        if not ser2.is_open:
             ser2.open()
         #Run a switch case on mode to set the value 
         if mode == 1:
