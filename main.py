@@ -2,8 +2,8 @@ from tkinter import *
 from tkinter import ttk
 
 # Chris uses this for UI Testing
-#import dummydeviceconnection as dc
-import deviceconnection as dc
+import dummydeviceconnection as dc
+#import deviceconnection as dc
 
 def validate_user_value(self, txt):
     print("in the validate_user_value function")
@@ -92,6 +92,7 @@ def print_selected():
 # Fires when someone clicks the "start" button
 def onClickStart():
     print("Start Button Pressed")
+    current_testing_status.set("Running")
     # Set the current to zero amps
     dc.set_TDI_state_ser1(0, 0, 0, 1)
     dc.set_TDI_state_ser2(0, 0, 0, 1)
@@ -104,6 +105,7 @@ def onClickStart():
 # Fires when someone clicks the "stop" button
 def onClickStop():
     print("Stop Button Pressed")
+    current_testing_status.set("Stopped")
     dc.set_TDI_state_ser1(0, 0, 0, 1)
     dc.set_TDI_state_ser2(0, 0, 0, 1)
     ## Call to zero load
@@ -129,7 +131,7 @@ def validate_float(var):
 
 root = Tk()
 root.title("Battery Testing Application v0.1")
-content = ttk.Frame(root)
+content = ttk.Frame(root, padding=(20,20,12,12))
 
 sv = StringVar()
 
@@ -166,8 +168,8 @@ name = ttk.Entry(content)
 
 contact_info = ttk.Label(content, text="Built by Chris and Dan Harris")
 
-input_header = ttk.Label(content, text="SELECT INPUT TYPE")
-testing_status = ttk.Label(content, text="TESTING STATUS: INACTIVE ")
+input_header = ttk.Label(content, text="SELECT INPUT TYPE", font=18)
+testing_status = ttk.Label(content, text="TESTING STATUS: ", font=22)
 
 # Making these all global so they can be assigned in the refresh routine without needing pass by reference
 global bank_1_current_output_var
@@ -193,6 +195,16 @@ bank_2_load_output_var = StringVar()
 
 global bank_2_heartbeat_var
 bank_2_heartbeat_var = StringVar()
+
+global current_testing_status
+current_testing_status = StringVar()
+current_testing_status_screenvalue = ttk.Label(content, textvariable=current_testing_status, font=18)
+
+
+curr_mode_title =  ttk.Label(content, text="CURRENT MODE", font=22)
+curr_output_title = ttk.Label(content, text="CURRENT OUTPUT", font=22)
+title_style = ttk.Style()
+title_style.configure("GO.TButton",  foreground="green", background="green")
 
 # Creating Text Labels for reach bank value
 bank_1_current_output_text = ttk.Label(content, text="B1 Curr:")
@@ -222,8 +234,14 @@ bank_2_load_output_var.set("...")
 bank_2_heartbeat_screenvalue = ttk.Label(content, textvariab=bank_2_heartbeat_var)
 bank_2_heartbeat_var.set("Loading...")
 
-ok = ttk.Button(content, text="Begin Testing", command=onClickStart)
-cancel = ttk.Button(content, text="Stop", command=onClickStop)
+go_style = ttk.Style()
+go_style.configure("GO.TButton", foreground="green", background="green")
+
+stop_style = ttk.Style()
+stop_style.configure("STOP.TButton", foreground="red", background="red")
+
+ok = ttk.Button(content, text="Begin Testing", command=onClickStart, style="GO.TButton")
+cancel = ttk.Button(content, text="Stop", command=onClickStop, style="STOP.TButton")
 
 ###############
 #
@@ -231,45 +249,51 @@ cancel = ttk.Button(content, text="Stop", command=onClickStop)
 #
 ###############
 
-testing_status.grid(column=7, row=0)
+
+testing_status.grid(column=7, row=0, sticky=E)
+current_testing_status_screenvalue.grid(column=8, row=0, sticky=E)
+curr_mode_title.grid(column=0, row=0)
 simul_option.grid(column=0, row=1)
 individ_option.grid(column=0, row=2)
 
 # Populate Bank 1 output screen labels and vals
-bank_1_current_output_text.grid(column=2, row=1)
+curr_output_title.grid(column=2, row=0, pady=5, padx=15, sticky=W+E)
+
+bank_1_current_output_text.grid(column=2, row=1, padx=15 , sticky=W)
 bank_1_current_output_screenvalue.grid(column=3, row=1)
 
-bank_1_volt_output_text.grid(column=2, row=2)
+bank_1_volt_output_text.grid(column=2, row=2, padx=15 , sticky=W)
 bank_1_volt_output_screenvalue.grid(column=3, row=2)
 
-bank_1_load_output_text.grid(column=2, row=3)
+bank_1_load_output_text.grid(column=2, row=3,padx=15 , sticky=W)
 bank_1_load_output_screenvalue.grid(column=3, row=3)
 
-bank_1_heartbeat_text.grid(column=7, row=1)
-bank_1_heartbeat_screenvalue.grid(column=8, row=1)
+bank_1_heartbeat_text.grid(column=7, row=1, sticky=W)
+bank_1_heartbeat_screenvalue.grid(column=8, row=1, sticky=E)
 
-bank_2_current_output_text.grid(column=4, row=1)
+bank_2_current_output_text.grid(column=4, row=1, padx=15 , sticky=W)
 bank_2_current_output_screenvalue.grid(column=5, row=1)
-bank_2_volt_output_text.grid(column=4, row=2)
+bank_2_volt_output_text.grid(column=4, row=2, padx=15 , sticky=W)
 bank_2_volt_output_screenvalue.grid(column=5, row=2)
-bank_2_load_output_text.grid(column=4, row=3)
+bank_2_load_output_text.grid(column=4, row=3, padx=15 , sticky=W)
 bank_2_load_output_screenvalue.grid(column=5, row=3)
-bank_2_heartbeat_text.grid(column=7, row=2)
-bank_2_heartbeat_screenvalue.grid(column=8, row=2)
 
-run_val.grid(column=6, row=5)
-input_header.grid(column=4, row=4)
-volt_option.grid(column=4, row=5)
-current_option.grid(column=4, row=6)
-power_option.grid(column=4, row=7)
-static_option.grid(column=4, row=8)
+bank_2_heartbeat_text.grid(column=7, row=2, sticky=W)
+bank_2_heartbeat_screenvalue.grid(column=8, row=2, sticky=E)
 
-ok.grid(column=7, row=5)
-cancel.grid(column=7, row=6)
+run_val.grid(column=6, row=5, sticky=W)
+input_header.grid(column=4, row=4, pady=15, sticky=W)
+volt_option.grid(column=4, row=5, sticky=W)
+current_option.grid(column=4, row=6, sticky=W)
+power_option.grid(column=4, row=7, sticky=W)
+static_option.grid(column=4, row=8, sticky=W)
+
+ok.grid(column=8, row=6, sticky=N+S+E+W)
+cancel.grid(column=8, row=7,  sticky=N+S+E+W)
 
 content.grid(column=0, row=0)
 predef.grid(column=5, row=8, columnspan=2)
-contact_info.grid(column=6, row=9, columnspan=3)
+contact_info.grid(column=7, row=9, columnspan=3, sticky=E)
 
 ###############
 #
