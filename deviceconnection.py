@@ -15,6 +15,10 @@ setup_complete = False
 
 def setup_serial_ports():
     global setup_complete
+    global ser1
+    global ser2
+    global sio1
+    global sio2
     try:
         #Static definition of COM Ports, maybe more elegant solution is possible in the future. 
         Bank1_Port='COM8' # This is the port of the WCL232 100-1000-12000
@@ -94,9 +98,10 @@ def getBank2Load():
 
 def queryTDI_ser1(write_str):
     try:
+        global setup_complete
         if not setup_complete:
             setup_serial_ports()
-        if not ser1.is_open():
+        if not ser1.is_open == True:
             ser1.open()
 
         sio1.write(write_str)
@@ -111,9 +116,9 @@ def queryTDI_ser1(write_str):
 
 def queryTDI_ser2(write_str):
     try:
-        if not setup_complete:
+        if not setup_complete == True:
             setup_serial_ports()
-        if not ser2.is_open():
+        if not ser2.is_open:
             ser2.open()
 
         sio2.write(write_str)

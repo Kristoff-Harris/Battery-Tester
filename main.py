@@ -2,8 +2,8 @@ from tkinter import *
 from tkinter import ttk
 
 # Chris uses this for UI Testing
-import dummydeviceconnection as dc
-#import deviceconnection as dc
+#import dummydeviceconnection as dc
+import deviceconnection as dc
 
 def validate_user_value(self, txt):
     print("in the validate_user_value function")
@@ -302,6 +302,6 @@ contact_info.grid(column=7, row=9, columnspan=3, sticky=E)
 ###############
 
 # Kick off the initial refresh sequence - lower to equal 500 to do it every .5 sec
-root.after(5000, ui_refresh)
+root.after(500, ui_refresh)
 
 root.mainloop()
