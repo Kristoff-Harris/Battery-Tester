@@ -21,8 +21,8 @@ def setup_serial_ports():
     global sio2
     try:
         #Static definition of COM Ports, maybe more elegant solution is possible in the future. 
-        Bank1_Port='COM8' # This is the port of the WCL232 100-1000-12000
-        Bank2_Port='COM7'
+        Bank1_Port='COM9' # This is the port of the WCL232 100-1000-12000
+        Bank2_Port='COM8'  #This is the port of the WCL488 400-200-6000
 
         #Define Serial Aliases 
         ser1 = serial.Serial()
@@ -59,7 +59,7 @@ def getBank1ConnStatus():
 def getBank2ConnStatus():
     Checkline = queryTDI_ser2(str("ID?\n"))
 
-    if Checkline[2:3] == 'W':  #Have to see how the other load bank responds to this request on Telnet (to get more specific)
+    if Checkline[2:-5] == 'WCL 400-200-6000':  #Have to see how the other load bank responds to this request on Telnet (to get more specific)
         return True
     else :
         return False
@@ -68,33 +68,54 @@ def getBank1Voltage():
     Checkline = queryTDI_ser1(str("V?\n"))
     lefttext=Checkline.partition(" v")[0]
     return lefttext[2:]
-    
+    try:
+        return float(lefttext[2:])
+    except:
+        return str("Waiting")
     
 
 def getBank2Voltage():
     Checkline = queryTDI_ser2(str("V?\n"))
     lefttext=Checkline.partition(" v")[0]
-    return lefttext[2:]
+    try:
+        return float(lefttext[2:])
+    except:
+        return str("Waiting")
 
 def getBank1Current():
     Checkline = queryTDI_ser1(str("I?\n"))
     lefttext=Checkline.partition(" a")[0]
-    return lefttext[2:]
+    try:
+        return float(lefttext[2:])
+    except:
+        return str("Waiting")
 
 def getBank2Current():
     Checkline = queryTDI_ser2(str("I?\n"))
     lefttext=Checkline.partition(" a")[0]
-    return lefttext[2:]
+    try:
+        return float(lefttext[2:])
+    except:
+        return str("Waiting")
+
 
 def getBank1Load():
     Checkline = queryTDI_ser1(str("P?\n"))
     lefttext=Checkline.partition(" w")[0]
-    return lefttext[2:]
+    try:
+        return float(lefttext[2:])
+    except:
+        return str("Waiting")
+
 
 def getBank2Load():
     Checkline = queryTDI_ser2(str("P?\n"))
     lefttext=Checkline.partition(" w")[0]
-    return lefttext[2:]
+    try:
+        return float(lefttext[2:])
+    except:
+        return str("Waiting")
+
 
 def queryTDI_ser1(write_str):
     try:
@@ -108,7 +129,7 @@ def queryTDI_ser1(write_str):
         sio1.flush() # it is buffering. required to get the data out *now*
         time.sleep(0.05)
         strout = str(ser1.readline())
-        ser1.close()
+        #ser1.close()
     except:
         strout = ''
     return strout
@@ -125,7 +146,7 @@ def queryTDI_ser2(write_str):
         sio2.flush() # it is buffering. required to get the data out *now*
         time.sleep(0.05)
         strout = str(ser2.readline())
-        ser2.close()
+        #ser2.close()
     except:
         strout = ''
     return strout
@@ -136,18 +157,18 @@ def set_TDI_state_ser1(curr,volt,power,mode):
             ser1.open()
         #Run a switch case on mode to set the value 
         if mode == 1:
-            sio1.write(str("CI"+curr+"\n"))
+            sio1.write(str("CI "+curr+"\n"))
         elif mode == 2:
-            sio1.write(str("CV"+volt+"\n"))
+            sio1.write(str("CV "+volt+"\n"))
         elif mode == 3:
-            sio1.write(str("CP"+power+"\n"))
+            sio1.write(str("CP "+power+"\n"))
         else:
             pass
 
         #Write the current command
         sio1.flush() # it is buffering. required to get the data out *now*
         time.sleep(0.05)
-        ser1.close()
+        #ser1.close()
     except:
         pass
     return 
@@ -159,18 +180,18 @@ def set_TDI_state_ser2(curr,volt,power,mode):
             ser2.open()
         #Run a switch case on mode to set the value 
         if mode == 1:
-            sio2.write(str("CI"+curr+"\n"))
+            sio2.write(str("CI "+curr+"\n"))
         elif mode == 2:
-            sio2.write(str("CV"+volt+"\n"))
+            sio2.write(str("CV "+volt+"\n"))
         elif mode == 3:
-            sio2.write(str("CP"+power+"\n"))
+            sio2.write(str("CP "+power+"\n"))
         else:
             pass
 
         #Write the current command
         sio2.flush() # it is buffering. required to get the data out *now*
         time.sleep(0.05)
-        ser2.close()
+        #ser2.close()
     except:
         pass
     return 
