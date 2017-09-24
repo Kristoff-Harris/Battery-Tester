@@ -2,8 +2,8 @@ from tkinter import *
 from tkinter import ttk
 
 # Chris uses this for UI Testing
-import dummydeviceconnection as dc
-#import deviceconnection as dc
+#import dummydeviceconnection as dc
+import deviceconnection as dc
 
 def validate_user_value(self, txt):
     print("in the validate_user_value function")
@@ -25,7 +25,7 @@ def ui_refresh():
     print("in the poll_sources function")
     print("Current Mode == " + str(mode.get()))
     if(mode.get() == ""):
-        print("User has not picked the test bank testing type they want (simul or individual)")
+        print("User has not picked the test bank mode A,B or A&B")
 
     print("Current Run Param == "+ str(run_param.get()))
 
@@ -109,7 +109,7 @@ def onClickStop():
     ## Call to zero load
     dc.set_TDI_state_ser1(0, 0, 0, 1)
     dc.set_TDI_state_ser2(0, 0, 0, 1)
-
+    sv.set(0)
     ## Call to open contactor
     dc.open_TDI1_contactor()
     dc.open_TDI2_contactor()
@@ -163,9 +163,9 @@ global run_param
 run_param = StringVar()
 
 run_val = ttk.Entry(run_mode_frame, textvariable=sv)
-volt_option = ttk.Radiobutton(run_mode_frame, text='V Input', variable=run_param, value='v_selected')
-current_option = ttk.Radiobutton(run_mode_frame, text='C Input', variable=run_param, value='c_selected')
-power_option = ttk.Radiobutton(run_mode_frame, text='Pow Input', variable=run_param, value='pow_selected')
+volt_option = ttk.Radiobutton(run_mode_frame, text='Constant Voltage Setpoint', variable=run_param, value='v_selected')
+current_option = ttk.Radiobutton(run_mode_frame, text='Constant Current Mode', variable=run_param, value='c_selected')
+power_option = ttk.Radiobutton(run_mode_frame, text='Constant Power Mode', variable=run_param, value='pow_selected')
 static_option = ttk.Radiobutton(preprog_mode_frame, text='Use Routine', variable=run_param, value='preprog_selected')
 
 global predefinedmodevar
@@ -230,11 +230,11 @@ bank_output_frame = Frame(content, bd=2, relief=RAISED, borderwidth=5)
 # Creating Text Labels for reach bank value
 bank_1_current_output_text = ttk.Label(bank_output_frame, text="B1 Curr:")
 bank_1_volt_output_text = ttk.Label(bank_output_frame, text="B1 V: ")
-bank_1_load_output_text = ttk.Label(bank_output_frame, text="B1 Load: ")
+bank_1_load_output_text = ttk.Label(bank_output_frame, text="B1 Power: ")
 bank_1_heartbeat_text = ttk.Label(heartbeat_frame, text="B1 Status:")
 bank_2_current_output_text = ttk.Label(bank_output_frame, text="B2 Curr:")
 bank_2_volt_output_text = ttk.Label(bank_output_frame, text="B2 V:")
-bank_2_load_output_text = ttk.Label(bank_output_frame, text="B2 Load:")
+bank_2_load_output_text = ttk.Label(bank_output_frame, text="B2 Power:")
 bank_2_heartbeat_text = ttk.Label(heartbeat_frame, text="B2 Status:")
 
 # Setting the screenvalue and default value (Seen at startup) of each bank value to be displayed on screen

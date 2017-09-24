@@ -67,7 +67,6 @@ def getBank2ConnStatus():
 def getBank1Voltage():
     Checkline = queryTDI_ser1(str("V?\n"))
     lefttext=Checkline.partition(" v")[0]
-    return lefttext[2:]
     try:
         return float(lefttext[2:])
     except:
