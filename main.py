@@ -76,7 +76,7 @@ def ui_refresh():
         bank_2_heartbeat_var.set("Offline")
 
     # This is needed to make sure another call to this happens in 5 sec (or .5 sec if 500)
-    root.after(5000, ui_refresh)
+    root.after(500, ui_refresh)
 
 
 def print_selected():
@@ -106,9 +106,10 @@ def onClickStart():
 def onClickStop():
     print("Stop Button Pressed")
     current_testing_status.set("Stopped")
+    ## Call to zero load
     dc.set_TDI_state_ser1(0, 0, 0, 1)
     dc.set_TDI_state_ser2(0, 0, 0, 1)
-    ## Call to zero load
+
     ## Call to open contactor
     dc.open_TDI1_contactor()
     dc.open_TDI2_contactor()
@@ -121,10 +122,19 @@ def validate_float(var):
     new_value = var.get()
     try:
         new_value == '' or float(new_value)
-        if float(new_value) > 100:
-            print('Input limit exceeded! Parameter too large!')
+        if (float(new_value) > 1200 and run_param.get() == 'c_selected'):
+            print('Current Draw Limits exceeded! Parameter too large!')
             var.set(old_value)
-
+        elif (float(new_value) > 18000 and run_param.get() == 'pow_selected'):
+            print('Power Draw Limits exceeded! Parameter too large!')
+            var.set(old_value)
+        else:
+            if run_param.get() == 'c_selected':
+                dc.set_TDI_state_ser1(float(new_value), 0, 0, 1)
+            elif run_param.get() == 'v_selected':
+                dc.set_TDI_state_ser2(0, float(new_value), 0, 2)
+            elif run_param.get() == 'pow_selected':
+                dc.set_TDI_state_ser2(0, 0, float(new_value), 3)
     except:
         var.set(old_value)
 
