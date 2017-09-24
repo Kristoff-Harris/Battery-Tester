@@ -75,6 +75,9 @@ def ui_refresh():
     else:
         bank_2_heartbeat_var.set("Offline")
 
+    
+
+
     # This is needed to make sure another call to this happens in 5 sec (or .5 sec if 500)
     root.after(500, ui_refresh)
 
@@ -139,6 +142,12 @@ def validate_float(var):
         var.set(old_value)
 
 
+def Script_440A_2_seconds():
+    dc.set_TDI_state_ser1(0, 0, 0, 1)
+    dc.set_TDI_state_ser2(0, 0, 0, 1)
+
+
+
 root = Tk()
 root.title("Battery Testing Application v0.1")
 content = ttk.Frame(root, padding=(20,20,12,12))
@@ -155,9 +164,9 @@ bank_mode_frame = Frame(content, bd=2, relief=SUNKEN, borderwidth=5)
 run_mode_frame = Frame(content, bd=2, relief=SUNKEN, borderwidth=5)
 preprog_mode_frame = Frame(content, bd=2, relief=SUNKEN, borderwidth=5)
 
-a_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank A', variable=mode, value='a_only')
-b_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank B', variable=mode, value='b_only')
-both_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank A&B', variable=mode, value='both')
+a_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank A (WCL 100-1000-12000)', variable=mode, value='a_only')
+#b_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank B (WCL 400-200-6000)', variable=mode, value='b_only')
+both_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank A&B (A & WCL 400-200-6000)', variable=mode, value='both')
 
 global run_param
 run_param = StringVar()
@@ -283,7 +292,7 @@ current_testing_status_screenvalue.grid(column=6, row=0, sticky=E)
 
 curr_mode_title.grid(column=0, row=0, sticky=W)
 a_option.grid(column=0, row=1, sticky=W)
-b_option.grid(column=0, row=2,sticky=W)
+#b_option.grid(column=0, row=2,sticky=W)
 both_option.grid(column=0, row=3, sticky=W)
 bank_mode_frame.grid(column=0, row=1, sticky=W+E+N+S)
 
