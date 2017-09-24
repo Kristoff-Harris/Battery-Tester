@@ -109,7 +109,7 @@ def getBank1Load():
 
 def getBank2Load():
     Checkline = queryTDI_ser2(str("P?\n"))
-    lefttext=Checkline.partition(" \")[0]
+    lefttext=Checkline.partition(" w")[0]
     try:
         return float(lefttext[2:])
     except:
@@ -122,7 +122,7 @@ def getBank1Contactor():
         lefttext=Checkline.partition(" \\")[0]
         righttext=Checkline.partition("LOAD ")[2]
 
-        if str(righttext[2]) == "N":  #N: N is for ON
+        if str(righttext[1]) == "N":  #N: N is for ON
             status_Load1 = True
         else:
             status_Load1 = False

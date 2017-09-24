@@ -75,7 +75,16 @@ def ui_refresh():
     else:
         bank_2_heartbeat_var.set("Offline")
 
-    
+    #Check to make sure load bank 1 has not faulted, if so, stop loadbank 2.  ###NEED TO FIX, WORKS ALL THE TIME VERSUS WHEN LB 2 is not requested.....
+    loadbank_stat = dc.getBank1Contactor()
+    global Contactor_LB1_Status_Old
+    if (Contactor_LB1_Status_Old==True) & (loadbank_stat==False):
+        onClickStop()
+    elif loadbank_stat == True:
+        Contactor_LB1_Status_Old = True
+
+
+
 
 
     # This is needed to make sure another call to this happens in 5 sec (or .5 sec if 500)
@@ -160,6 +169,9 @@ sv.trace('w', lambda nm, idx, mode, var=sv: validate_float(var))
 global mode
 mode = StringVar()
 
+global Contactor_LB1_Status_Old  # Allow hystersis on the diagnosing load bank 1 has faulted (stopping cooling flow)
+Contactor_LB1_Status_Old = False
+
 bank_mode_frame = Frame(content, bd=2, relief=SUNKEN, borderwidth=5)
 run_mode_frame = Frame(content, bd=2, relief=SUNKEN, borderwidth=5)
 preprog_mode_frame = Frame(content, bd=2, relief=SUNKEN, borderwidth=5)
@@ -220,6 +232,8 @@ bank_2_load_output_var = StringVar()
 
 global bank_2_heartbeat_var
 bank_2_heartbeat_var = StringVar()
+
+
 
 global current_testing_status
 current_testing_status = StringVar()
