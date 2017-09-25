@@ -2,8 +2,8 @@ from tkinter import *
 from tkinter import ttk
 
 # Chris uses this for UI Testing
-#import dummydeviceconnection as dc
-import deviceconnection as dc
+import dummydeviceconnection as dc
+#import deviceconnection as dc
 
 def validate_user_value(self, txt):
     print("in the validate_user_value function")
@@ -155,7 +155,11 @@ def Script_440A_2_seconds():
     dc.set_TDI_state_ser1(0, 0, 0, 1)
     dc.set_TDI_state_ser2(0, 0, 0, 1)
 
-
+def fetch():
+    print("Input => " + str( run_val.get()))             # get text
+    #ent.delete('0', END)
+    #run_val.insert(END, 'x')
+    #run_val.insert(0, 'x')
 
 root = Tk()
 root.title("Battery Testing Application v0.1")
@@ -165,6 +169,7 @@ sv = StringVar()
 
 # trace wants a callback with nearly useless parameters, fixing with lambda.
 sv.trace('w', lambda nm, idx, mode, var=sv: validate_float(var))
+#sv.trace('w', lambda nm, validate='enter', mode, var=sv: validate_float(var))
 
 global mode
 mode = StringVar()
@@ -184,6 +189,9 @@ global run_param
 run_param = StringVar()
 
 run_val = ttk.Entry(run_mode_frame, textvariable=sv)
+
+run_val.bind('<Return>', (lambda event: fetch()) )
+
 volt_option = ttk.Radiobutton(run_mode_frame, text='Constant Voltage Setpoint', variable=run_param, value='v_selected')
 current_option = ttk.Radiobutton(run_mode_frame, text='Constant Current Mode', variable=run_param, value='c_selected')
 power_option = ttk.Radiobutton(run_mode_frame, text='Constant Power Mode', variable=run_param, value='pow_selected')
