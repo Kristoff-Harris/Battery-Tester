@@ -11,7 +11,7 @@ import dummydeviceconnection as dc
 #
 
 # We could also make this a more complex data structure and also have time till next command is invoked
-routine_1_commands = ['SendV12', 'SendV13', 'SendV14', 'SendV15', 'SendV16']            
+routine_1_commands = ['SendV12', 'SendV13', 'SendV14', 'SendV15', 'SendV16']
 # This holds the index to the routine_1_commands
 routine_pointer = 0
 # This is what will be referenced to check to see if the preprogrammed execution should be continued
@@ -34,6 +34,7 @@ def run_preprog_mode():
     # and then sort of "imports" it so we can manipulate it in here and have the changes reflected globally.
     global routine_1_commands
     global routine_pointer
+    global preprog_continue
 
     # Checking to make sure we're still okay to run and we haven't yet hit the end of the command array
     if preprog_continue == True and routine_pointer < len(routine_1_commands):
@@ -41,9 +42,10 @@ def run_preprog_mode():
         routine_pointer += 1
         root.after(500, run_preprog_mode)
 
-    #else:
+    else:
         # Reset the routine pointer
-        #routine_pointer = 0
+        routine_pointer = 0
+        preprog_continue = False
 
 
 # This code gets called every "Refresh" period, so in it we'll want to check on the status of both banks to make sure theyre
