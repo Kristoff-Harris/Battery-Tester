@@ -5,6 +5,18 @@ from tkinter import ttk
 import dummydeviceconnection as dc
 #import deviceconnection as dc
 
+
+#
+#   Create preprogrammed routine variables
+#
+
+# We could also make this a more complex data structure and also have time till next command is invoked
+routine_1_commands = ['SendV12', 'SendV13', 'SendV14', 'SendV15', 'SendV16']            
+# This holds the index to the routine_1_commands
+routine_pointer = 0
+# This is what will be referenced to check to see if the preprogrammed execution should be continued
+preprog_continue = True
+
 def validate_user_value(self, txt):
     print("in the validate_user_value function")
     if not txt:  # Do not accept an empty string
@@ -16,6 +28,22 @@ def validate_user_value(self, txt):
 
     except ValueError:
         return False
+
+def run_preprog_mode():
+    # global basically just creates a variable which looks outside of the scope of the function to see if it exists
+    # and then sort of "imports" it so we can manipulate it in here and have the changes reflected globally.
+    global routine_1_commands
+    global routine_pointer
+
+    # Checking to make sure we're still okay to run and we haven't yet hit the end of the command array
+    if preprog_continue == True and routine_pointer < len(routine_1_commands):
+        print("We should execute " + str(routine_1_commands[routine_pointer]) )
+        routine_pointer += 1
+        root.after(500, run_preprog_mode)
+
+    #else:
+        # Reset the routine pointer
+        #routine_pointer = 0
 
 
 # This code gets called every "Refresh" period, so in it we'll want to check on the status of both banks to make sure theyre
@@ -31,6 +59,7 @@ def ui_refresh():
 
     if(run_param.get() == "preprog_selected"):
         print("Pre-Prog Mode == " +  str(predefinedmodevar.get()))
+
 
     #initializing the bank variables so if dc.get... command doesn't return anything, they wont be uninitialized
     bank1v = "Unk"
@@ -106,6 +135,14 @@ def print_selected():
 def onClickStart():
     print("Start Button Pressed")
     current_testing_status.set("Running")
+
+    global preprog_continue
+
+    #invoke the special code for preprog mode
+    if (run_param.get() == "preprog_selected"):
+        preprog_continue = True
+        run_preprog_mode()
+
     # Set the current to zero amps
     dc.set_TDI_state_ser1(0, 0, 0, 1)
     dc.set_TDI_state_ser2(0, 0, 0, 1)
@@ -119,6 +156,15 @@ def onClickStart():
 def onClickStop():
     print("Stop Button Pressed")
     current_testing_status.set("Stopped")
+
+    global preprog_continue
+    global routine_pointer
+
+    # Reset the preprogrammed routine
+    if (run_param.get() == "preprog_selected"):
+        preprog_continue = False
+        routine_pointer = 0
+
     ## Call to zero load
     dc.set_TDI_state_ser1(0, 0, 0, 1)
     dc.set_TDI_state_ser2(0, 0, 0, 1)
