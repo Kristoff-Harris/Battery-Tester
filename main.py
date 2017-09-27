@@ -2,8 +2,8 @@ from tkinter import *
 from tkinter import ttk
 
 # Chris uses this for UI Testing
-import dummydeviceconnection as dc
-#import deviceconnection as dc
+#import dummydeviceconnection as dc
+import deviceconnection as dc
 
 
 #
@@ -11,7 +11,10 @@ import dummydeviceconnection as dc
 #
 
 # We could also make this a more complex data structure and also have time till next command is invoked
-routine_1_commands = ['SendV12', 'SendV13', 'SendV14', 'SendV15', 'SendV16']
+routine_1_commands = ['StepV12', 'StepV13', 'StepV14', 'StepV15', 'StepV16']
+routine_1_durations = [1000, 20000, 5000, 2000, 5000]
+rountine_1_curr = [0, 320, 0, 440, 0]
+
 # This holds the index to the routine_1_commands
 routine_pointer = 0
 # This is what will be referenced to check to see if the preprogrammed execution should be continued
@@ -35,18 +38,24 @@ def run_preprog_mode():
     global routine_1_commands
     global routine_pointer
     global preprog_continue
+    global routine_1_durations
+    global rountine_1_curr
 
     # Checking to make sure we're still okay to run and we haven't yet hit the end of the command array
     if preprog_continue == True and routine_pointer < len(routine_1_commands):
-        print("We should execute " + str(routine_1_commands[routine_pointer]) )
+        print("Excuting: " + str(routine_1_commands[routine_pointer]) )
+        Step_duration = routine_1_durations[routine_pointer]
+        print("This point is " + str(rountine_1_curr[routine_pointer]) + " Amps for " + str(0.001*Step_duration) + " seconds")
         routine_pointer += 1
-        root.after(500, run_preprog_mode)
-
+        root.after(Step_duration, run_preprog_mode)
+    elif preprog_continue == True:  #The script should have ended correctly 
+        current_testing_status.set("Script Done")
     else:
         # Reset the routine pointer
         routine_pointer = 0
         preprog_continue = False
-
+        dc.open_TDI1_contactor()
+        dc.open_TDI2_contactor()
 
 # This code gets called every "Refresh" period, so in it we'll want to check on the status of both banks to make sure theyre
 # Online as well as to update the UI values of Bank1 and Bank2
@@ -75,7 +84,7 @@ def ui_refresh():
     bank1v = str(dc.getBank1Voltage())
     bank2v = str(dc.getBank2Voltage())
     bank1c = str(dc.getBank1Current())
-    bank2c = str(dc.getBank1Current())
+    bank2c = str(dc.getBank2Current())
     bank1l = str(dc.getBank1Load())
     bank2l = str(dc.getBank2Load())
 
@@ -96,26 +105,38 @@ def ui_refresh():
 
     # How do we want to handle if the connection to a bank breaks? We should put that code below
 
-    # Doing a basic check to see if a bank is online or offline
-    if (dc.getBank1ConnStatus() == True):
-        bank_1_heartbeat_var.set("Online")
-    else:
-        bank_1_heartbeat_var.set("Offline")
-    if (dc.getBank2ConnStatus() == True):
-        bank_2_heartbeat_var.set("Online")
-    else:
-        bank_2_heartbeat_var.set("Offline")
 
-    #Check to make sure load bank 1 has not faulted, if so, stop loadbank 2.  ###NEED TO FIX, WORKS ALL THE TIME VERSUS WHEN LB 2 is not requested.....
-    loadbank_stat = dc.getBank1Contactor()
+
+    #Check to make sure load bank 1 has not faulted, if so, stop loadbank 2.  
+    loadbank1_contact_stat = dc.getBank1Contactor()
+    loadbank2_contact_stat = dc.getBank2Contactor()
     global Contactor_LB1_Status_Old
-    if (Contactor_LB1_Status_Old == True) & (loadbank_stat == False):
+    if (Contactor_LB1_Status_Old == True) & (loadbank1_contact_stat == False):
         onClickStop()
         Contactor_LB1_Status_Old = False
-    elif loadbank_stat == True:
+    elif loadbank1_contact_stat == True:
         Contactor_LB1_Status_Old = True
 
+    if loadbank1_contact_stat == True:
+        loadbank1_contact_stat_str='Contactor Closed'
+    else:
+        loadbank1_contact_stat_str='Contactor Open'
 
+    if loadbank2_contact_stat == True:
+        loadbank2_contact_stat_str='Contactor Closed'
+    else:
+        loadbank2_contact_stat_str='Contactor Open'
+
+
+    # Doing a basic check to see if a bank is online or offline
+    if (dc.getBank1ConnStatus() == True):
+        bank_1_heartbeat_var.set("Online: " + loadbank1_contact_stat_str)
+    else:
+        bank_1_heartbeat_var.set("Offline ")
+    if (dc.getBank2ConnStatus() == True):
+        bank_2_heartbeat_var.set("Online: " +  loadbank2_contact_stat_str)
+    else:
+        bank_2_heartbeat_var.set("Offline ")
 
 
 
@@ -125,9 +146,9 @@ def ui_refresh():
 
 def print_selected():
     print("Combobox changed")
-
-    dc.set_TDI_state_ser1(0, 0, 0, 1)
-    dc.set_TDI_state_ser2(0, 0, 0, 1)
+    preprog_continue = False
+    dc.set_TDI_state_ser1(0, 0, 0, 1, mode.get())
+    dc.set_TDI_state_ser2(0, 0, 0, 1, mode.get())
     ## Call to zero load
     # State of the combo box will need to be known later but for now we just want to put
     # the load bank in a safe mode
@@ -136,23 +157,26 @@ def print_selected():
 # Fires when someone clicks the "start" button
 def onClickStart():
     print("Start Button Pressed")
-    current_testing_status.set("Running")
+    
 
+
+
+    # Set the current to zero amps
+    dc.set_TDI_state_ser1(0, 0, 0, 1, mode.get())
+    dc.set_TDI_state_ser2(0, 0, 0, 1, mode.get())
+    # Close both contactors
+    dc.close_TDI1_contactor()
+    dc.close_TDI2_contactor()
+    # If the combobox is set to a script fire that off
     global preprog_continue
 
     #invoke the special code for preprog mode
     if (run_param.get() == "preprog_selected"):
         preprog_continue = True
         run_preprog_mode()
-
-    # Set the current to zero amps
-    dc.set_TDI_state_ser1(0, 0, 0, 1)
-    dc.set_TDI_state_ser2(0, 0, 0, 1)
-    # Close both contactors
-    dc.close_TDI1_contactor()
-    dc.close_TDI2_contactor()
-    # If the combobox is set to a script fire that off
-
+        current_testing_status.set("Script Run")
+    else:
+        current_testing_status.set("Manual")
 
 # Fires when someone clicks the "stop" button
 def onClickStop():
@@ -168,8 +192,8 @@ def onClickStop():
         routine_pointer = 0
 
     ## Call to zero load
-    dc.set_TDI_state_ser1(0, 0, 0, 1)
-    dc.set_TDI_state_ser2(0, 0, 0, 1)
+    dc.set_TDI_state_ser1(0, 0, 0, 1, mode.get())
+    dc.set_TDI_state_ser2(0, 0, 0, 1, mode.get())
     sv.set(0)
     ## Call to open contactor
     dc.open_TDI1_contactor()
@@ -183,32 +207,43 @@ def validate_float(var):
     new_value = var.get()
     try:
         new_value == '' or float(new_value)
-        if (float(new_value) > 1200 and run_param.get() == 'c_selected'):
-            print('Current Draw Limits exceeded! Parameter too large!')
+        if (float(new_value) > 700 and run_param.get() == 'c_selected'):
+            print('Current Draw Limits (700A) exceeded! Parameter too large!')
             var.set(old_value)
         elif (float(new_value) > 18000 and run_param.get() == 'pow_selected'):
-            print('Power Draw Limits exceeded! Parameter too large!')
+            print('Power Draw Limits (18kW) exceeded! Parameter too large!')
             var.set(old_value)
-        else:
-            if run_param.get() == 'c_selected':
-                dc.set_TDI_state_ser1(float(new_value), 0, 0, 1)
-            elif run_param.get() == 'v_selected':
-                dc.set_TDI_state_ser2(0, float(new_value), 0, 2)
-            elif run_param.get() == 'pow_selected':
-                dc.set_TDI_state_ser2(0, 0, float(new_value), 3)
     except:
         var.set(old_value)
 
+        """
+       else:
+            if run_param.get() == 'c_selected':
+                dc.set_TDI_state_ser1(float(new_value), 0, 0, 1, mode.get())
+                dc.set_TDI_state_ser2(float(new_value), 0, 0, 1, mode.get())
+            elif run_param.get() == 'v_selected':
+                dc.set_TDI_state_ser1(0, float(new_value), 0, 2, mode.get())
+                dc.set_TDI_state_ser2(0, float(new_value), 0, 2, mode.get())
+            elif run_param.get() == 'pow_selected':
+                dc.set_TDI_state_ser1(0, 0, float(new_value), 3, mode.get())
+                dc.set_TDI_state_ser2(0, 0, float(new_value), 3, mode.get())
+        """
 
-def Script_440A_2_seconds():
-    dc.set_TDI_state_ser1(0, 0, 0, 1)
-    dc.set_TDI_state_ser2(0, 0, 0, 1)
 
 def fetch():
+    
+    new_value = run_val.get()
     print("Input => " + str( run_val.get()))             # get text
-    #ent.delete('0', END)
-    #run_val.insert(END, 'x')
-    #run_val.insert(0, 'x')
+    
+    if run_param.get() == 'c_selected':
+        dc.set_TDI_state_ser1(float(new_value), 0, 0, 1, mode.get())
+        dc.set_TDI_state_ser2(float(new_value), 0, 0, 1, mode.get())
+    elif run_param.get() == 'v_selected':
+        dc.set_TDI_state_ser1(0, float(new_value), 0, 2, mode.get())
+        dc.set_TDI_state_ser2(0, float(new_value), 0, 2, mode.get())
+    elif run_param.get() == 'pow_selected':
+        dc.set_TDI_state_ser1(0, 0, float(new_value), 3, mode.get())
+        dc.set_TDI_state_ser2(0, 0, float(new_value), 3, mode.get())
 
 root = Tk()
 root.title("Battery Testing Application v0.1")
@@ -250,7 +285,7 @@ global predefinedmodevar
 predefinedmodevar = StringVar()
 predef = ttk.Combobox(preprog_mode_frame, textvariable=predefinedmodevar)
 predef.bind('<<ComboboxSelected>>', print_selected())
-predef['values'] = ('Pre-defined 1', 'Pre-defined 2', 'Pre-defined 3')
+predef['values'] = ('320A / 440A', 'Pre-defined 2', 'Pre-defined 3')
 
 ###############
 #

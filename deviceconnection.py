@@ -10,6 +10,7 @@ import io
 import time
 import load_balance as lb
 
+
 global setup_complete
 setup_complete = False
 
@@ -22,7 +23,7 @@ def setup_serial_ports():
     try:
         #Static definition of COM Ports, maybe more elegant solution is possible in the future. 
         Bank1_Port='COM9' # This is the port of the WCL232 100-1000-12000
-        Bank2_Port='COM8'  #This is the port of the WCL488 400-200-6000
+        Bank2_Port='COM7'  #This is the port of the WCL488 400-200-6000
 
         #Define Serial Aliases 
         ser1 = serial.Serial()
@@ -131,6 +132,20 @@ def getBank1Contactor():
     except:
         return False
 
+def getBank2Contactor():
+    try:
+        Checkline = queryTDI_ser2(str("LOAD?\n"))
+        lefttext=Checkline.partition(" \\")[0]
+        righttext=Checkline.partition("LOAD ")[2]
+
+        if str(righttext[1]) == "N":  #N: N is for ON
+            status_Load2 = True
+        else:
+            status_Load2 = False
+
+        return status_Load2
+    except:
+        return False
 
 def queryTDI_ser1(write_str):
     try:
@@ -142,7 +157,7 @@ def queryTDI_ser1(write_str):
 
         sio1.write(write_str)
         sio1.flush() # it is buffering. required to get the data out *now*
-        time.sleep(0.05)
+        #time.sleep(0.1)
         strout = str(ser1.readline())
         #ser1.close()
     except:
@@ -159,53 +174,66 @@ def queryTDI_ser2(write_str):
 
         sio2.write(write_str)
         sio2.flush() # it is buffering. required to get the data out *now*
-        time.sleep(0.05)
+        #time.sleep(0.1)
         strout = str(ser2.readline())
         #ser2.close()
     except:
         strout = ''
     return strout
 
-def set_TDI_state_ser1(curr,volt,power,mode):
+def set_TDI_state_ser1(curr,volt,power,LB_mode,Test_mode):
     try:
         if not ser1.is_open:
             ser1.open()
-        #Run a switch case on mode to set the value 
-        if mode == 1:
-            sio1.write(str("CI "+curr+"\n"))
-        elif mode == 2:
-            sio1.write(str("CV "+volt+"\n"))
-        elif mode == 3:
-            sio1.write(str("CP "+power+"\n"))
+        #Run a switch case on LB_mode to set the value 
+        if LB_mode == 1:
+            current_request = lb.factor1(curr,Test_mode)
+            range_request = lb.range1(current_request)
+            sio1.write(str("RNG ") + str(range_request) +str("\n"))
+            sio1.write(str("CI ")+ str(current_request)+ str("\n"))
+        elif LB_mode == 2:
+            #sio2.write(str("CV "+volt+"\n"))
+            sio1.write(str("CV ")+ str(volt) + str("\n"))
+        elif LB_mode == 3:
+            #sio2.write(str("CP "+power+"\n"))
+            sio1.write(str("CP ")+ str(power) + str("\n"))
         else:
             pass
 
         #Write the current command
         sio1.flush() # it is buffering. required to get the data out *now*
-        time.sleep(0.05)
+        strout = str(sio1.readline())
+
+        #time.sleep(0.05)
         #ser1.close()
     except:
         pass
     return 
 
 
-def set_TDI_state_ser2(curr,volt,power,mode):
+def set_TDI_state_ser2(curr,volt,power,LB_mode,Test_mode):
     try:
         if not ser2.is_open:
             ser2.open()
-        #Run a switch case on mode to set the value 
-        if mode == 1:
-            sio2.write(str("CI "+curr+"\n"))
-        elif mode == 2:
-            sio2.write(str("CV "+volt+"\n"))
-        elif mode == 3:
-            sio2.write(str("CP "+power+"\n"))
+        #Run a switch case on LB_mode to set the value 
+        if LB_mode == 1:
+            current_request = lb.factor2(curr,Test_mode)
+            range_request = lb.range2(current_request)
+            sio2.write(str("RNG ") + str(range_request) +str("\n"))
+            sio2.write(str("CI ")+ str(current_request)+ str("\n"))
+        elif LB_mode == 2:
+            #sio2.write(str("CV "+volt+"\n"))
+            sio2.write(str("CV ")+ str(volt) + str("\n"))
+        elif LB_mode == 3:
+            #sio2.write(str("CP "+power+"\n"))
+            sio2.write(str("CP ")+ str(power) + str("\n"))
         else:
             pass
 
         #Write the current command
         sio2.flush() # it is buffering. required to get the data out *now*
-        time.sleep(0.05)
+        strout = str(sio2.readline())
+       # time.sleep(0.05)
         #ser2.close()
     except:
         pass
