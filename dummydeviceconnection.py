@@ -42,12 +42,12 @@ def queryTDI_ser2(write_str):
     return "something"
 
 
-def set_TDI_state_ser1(curr, volt, power, mode):
+def set_TDI_state_ser1(curr, volt, power, mode, TEST_Mmode):
 
     return
 
 
-def set_TDI_state_ser2(curr, volt, power, mode):
+def set_TDI_state_ser2(curr, volt, power, mode,TEST_Mmode):
     return
 
 

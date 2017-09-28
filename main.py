@@ -137,9 +137,14 @@ def ui_refresh():
         bank_2_heartbeat_var.set("Online: " +  loadbank2_contact_stat_str)
     else:
         bank_2_heartbeat_var.set("Offline ")
-
-
-
+    """
+    print(str("Waiting to send"))
+    print(ser1.outWaiting())
+    print(ser2.outWaiting())
+    print(str("Waiting for:"))
+    print(ser1.inWaiting())
+    print(ser2.inWaiting())
+    """
     # This is needed to make sure another call to this happens in 5 sec (or .5 sec if 500)
     root.after(500, ui_refresh)
 
