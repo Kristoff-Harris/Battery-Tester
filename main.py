@@ -1,10 +1,10 @@
 from tkinter import *
 from tkinter import ttk
+from threading import Thread
 
 # Chris uses this for UI Testing
-#import dummydeviceconnection as dc
-import deviceconnection as dc
-
+import dummydeviceconnection as dc
+#import deviceconnection as dc
 
 #
 #   Create preprogrammed routine variables
@@ -15,10 +15,19 @@ routine_1_commands = ['StepV12', 'StepV13', 'StepV14', 'StepV15', 'StepV16']
 routine_1_durations = [1000, 20000, 5000, 2000, 5000]
 rountine_1_curr = [0, 320, 0, 440, 0]
 
+
+bank1v = "Unk"
+bank2v = "Unk"
+bank1c = "Unk"
+bank2c = "Unk"
+bank1l = "Unk"
+bank2l = "Unk"
+
 # This holds the index to the routine_1_commands
 routine_pointer = 0
 # This is what will be referenced to check to see if the preprogrammed execution should be continued
 preprog_continue = True
+
 
 def validate_user_value(self, txt):
     print("in the validate_user_value function")
@@ -32,6 +41,7 @@ def validate_user_value(self, txt):
     except ValueError:
         return False
 
+
 def run_preprog_mode():
     # global basically just creates a variable which looks outside of the scope of the function to see if it exists
     # and then sort of "imports" it so we can manipulate it in here and have the changes reflected globally.
@@ -43,12 +53,13 @@ def run_preprog_mode():
 
     # Checking to make sure we're still okay to run and we haven't yet hit the end of the command array
     if preprog_continue == True and routine_pointer < len(routine_1_commands):
-        print("Excuting: " + str(routine_1_commands[routine_pointer]) )
+        print("Excuting: " + str(routine_1_commands[routine_pointer]))
         Step_duration = routine_1_durations[routine_pointer]
-        print("This point is " + str(rountine_1_curr[routine_pointer]) + " Amps for " + str(0.001*Step_duration) + " seconds")
+        print("This point is " + str(rountine_1_curr[routine_pointer]) + " Amps for " + str(
+            0.001 * Step_duration) + " seconds")
         routine_pointer += 1
         root.after(Step_duration, run_preprog_mode)
-    elif preprog_continue == True:  #The script should have ended correctly 
+    elif preprog_continue == True:  # The script should have ended correctly
         current_testing_status.set("Script Done")
     else:
         # Reset the routine pointer
@@ -57,37 +68,56 @@ def run_preprog_mode():
         dc.open_TDI1_contactor()
         dc.open_TDI2_contactor()
 
+# Ultimately it may be better to break this function out into a bank1 getter and a bank2 getter which run concurrently. 
+# This was a simpler way to do it for a proof of concept
+def threaded_retriever_function():
+    global bank1v
+    bank1v = str(dc.getBank1Voltage())
+
+    global bank2v
+    bank2v = str(dc.getBank2Voltage())
+
+    global bank1c
+    bank1c = str(dc.getBank1Current())
+
+    global bank2c
+    bank2c = str(dc.getBank2Current())
+
+    global bank1l
+    bank1l = str(dc.getBank1Load())
+
+    global bank2l
+    bank2l = str(dc.getBank2Load())
+
+
+
 # This code gets called every "Refresh" period, so in it we'll want to check on the status of both banks to make sure theyre
 # Online as well as to update the UI values of Bank1 and Bank2
 
 def ui_refresh():
     print("in the poll_sources function")
     print("Current Mode == " + str(mode.get()))
-    if(mode.get() == ""):
+    if (mode.get() == ""):
         print("User has not picked the test bank mode A,B or A&B")
 
-    print("Current Run Param == "+ str(run_param.get()))
+    print("Current Run Param == " + str(run_param.get()))
 
-    if(run_param.get() == "preprog_selected"):
-        print("Pre-Prog Mode == " +  str(predefinedmodevar.get()))
+    if (run_param.get() == "preprog_selected"):
+        print("Pre-Prog Mode == " + str(predefinedmodevar.get()))
 
+    # initializing the bank variables so if dc.get... command doesn't return anything, they wont be uninitialized
+    global bank1v
 
-    #initializing the bank variables so if dc.get... command doesn't return anything, they wont be uninitialized
-    bank1v = "Unk"
-    bank2v = "Unk"
-    bank1c = "Unk"
-    bank2c = "Unk"
-    bank1l = "Unk"
-    bank2l = "Unk"
+    # Instantiating a thread object and kicking it off
+    thread = Thread(target=threaded_retriever_function)
+    thread.start()
+    #You could add back the join below if you ever wanted to wait for the thread to finish before proceeding
+    #thread.join()
+    #print("thread finished...exiting")
 
     # Getting the bank 1 and bank 2 values upfront so we don't have to query them multiple times within the ui_refresh method
-    bank1v = str(dc.getBank1Voltage())
-    bank2v = str(dc.getBank2Voltage())
-    bank1c = str(dc.getBank1Current())
-    bank2c = str(dc.getBank2Current())
-    bank1l = str(dc.getBank1Load())
-    bank2l = str(dc.getBank2Load())
 
+    # For the code below to be more accurate when it's printed, it should be moved into the thread
     print("Bank1Voltage == " + bank1v)
     print("Bank2Voltage == " + bank2v)
     print("Bank1Current == " + bank1c)
@@ -107,7 +137,7 @@ def ui_refresh():
 
 
 
-    #Check to make sure load bank 1 has not faulted, if so, stop loadbank 2.  
+    # Check to make sure load bank 1 has not faulted, if so, stop loadbank 2.
     loadbank1_contact_stat = dc.getBank1Contactor()
     loadbank2_contact_stat = dc.getBank2Contactor()
     global Contactor_LB1_Status_Old
@@ -118,15 +148,14 @@ def ui_refresh():
         Contactor_LB1_Status_Old = True
 
     if loadbank1_contact_stat == True:
-        loadbank1_contact_stat_str='Contactor Closed'
+        loadbank1_contact_stat_str = 'Contactor Closed'
     else:
-        loadbank1_contact_stat_str='Contactor Open'
+        loadbank1_contact_stat_str = 'Contactor Open'
 
     if loadbank2_contact_stat == True:
-        loadbank2_contact_stat_str='Contactor Closed'
+        loadbank2_contact_stat_str = 'Contactor Closed'
     else:
-        loadbank2_contact_stat_str='Contactor Open'
-
+        loadbank2_contact_stat_str = 'Contactor Open'
 
     # Doing a basic check to see if a bank is online or offline
     if (dc.getBank1ConnStatus() == True):
@@ -134,11 +163,9 @@ def ui_refresh():
     else:
         bank_1_heartbeat_var.set("Offline ")
     if (dc.getBank2ConnStatus() == True):
-        bank_2_heartbeat_var.set("Online: " +  loadbank2_contact_stat_str)
+        bank_2_heartbeat_var.set("Online: " + loadbank2_contact_stat_str)
     else:
         bank_2_heartbeat_var.set("Offline ")
-
-
 
     # This is needed to make sure another call to this happens in 5 sec (or .5 sec if 500)
     root.after(500, ui_refresh)
@@ -157,9 +184,6 @@ def print_selected():
 # Fires when someone clicks the "start" button
 def onClickStart():
     print("Start Button Pressed")
-    
-
-
 
     # Set the current to zero amps
     dc.set_TDI_state_ser1(0, 0, 0, 1, mode.get())
@@ -170,13 +194,14 @@ def onClickStart():
     # If the combobox is set to a script fire that off
     global preprog_continue
 
-    #invoke the special code for preprog mode
+    # invoke the special code for preprog mode
     if (run_param.get() == "preprog_selected"):
         preprog_continue = True
         run_preprog_mode()
         current_testing_status.set("Script Run")
     else:
         current_testing_status.set("Manual")
+
 
 # Fires when someone clicks the "stop" button
 def onClickStop():
@@ -231,10 +256,9 @@ def validate_float(var):
 
 
 def fetch():
-    
     new_value = run_val.get()
-    print("Input => " + str( run_val.get()))             # get text
-    
+    print("Input => " + str(run_val.get()))  # get text
+
     if run_param.get() == 'c_selected':
         dc.set_TDI_state_ser1(float(new_value), 0, 0, 1, mode.get())
         dc.set_TDI_state_ser2(float(new_value), 0, 0, 1, mode.get())
@@ -245,15 +269,16 @@ def fetch():
         dc.set_TDI_state_ser1(0, 0, float(new_value), 3, mode.get())
         dc.set_TDI_state_ser2(0, 0, float(new_value), 3, mode.get())
 
+
 root = Tk()
 root.title("Battery Testing Application v0.1")
-content = ttk.Frame(root, padding=(20,20,12,12))
+content = ttk.Frame(root, padding=(20, 20, 12, 12))
 
 sv = StringVar()
 
 # trace wants a callback with nearly useless parameters, fixing with lambda.
 sv.trace('w', lambda nm, idx, mode, var=sv: validate_float(var))
-#sv.trace('w', lambda nm, validate='enter', mode, var=sv: validate_float(var))
+# sv.trace('w', lambda nm, validate='enter', mode, var=sv: validate_float(var))
 
 global mode
 mode = StringVar()
@@ -266,7 +291,7 @@ run_mode_frame = Frame(content, bd=2, relief=SUNKEN, borderwidth=5)
 preprog_mode_frame = Frame(content, bd=2, relief=SUNKEN, borderwidth=5)
 
 a_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank A (WCL 100-1000-12000)', variable=mode, value='a_only')
-#b_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank B (WCL 400-200-6000)', variable=mode, value='b_only')
+# b_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank B (WCL 400-200-6000)', variable=mode, value='b_only')
 both_option = ttk.Radiobutton(bank_mode_frame, text='Load Bank A&B (A & WCL 400-200-6000)', variable=mode, value='both')
 
 global run_param
@@ -274,7 +299,7 @@ run_param = StringVar()
 
 run_val = ttk.Entry(run_mode_frame, textvariable=sv)
 
-run_val.bind('<Return>', (lambda event: fetch()) )
+run_val.bind('<Return>', (lambda event: fetch()))
 
 volt_option = ttk.Radiobutton(run_mode_frame, text='Constant Voltage Setpoint', variable=run_param, value='v_selected')
 current_option = ttk.Radiobutton(run_mode_frame, text='Constant Current Mode', variable=run_param, value='c_selected')
@@ -325,18 +350,15 @@ bank_2_load_output_var = StringVar()
 global bank_2_heartbeat_var
 bank_2_heartbeat_var = StringVar()
 
-
-
 global current_testing_status
 current_testing_status = StringVar()
 current_testing_status.set("Stopped")
 current_testing_status_screenvalue = ttk.Label(content, textvariable=current_testing_status, font=18)
 
-
-curr_mode_title =  ttk.Label(content, text="Load Bank Selection", font=22)
+curr_mode_title = ttk.Label(content, text="Load Bank Selection", font=22)
 curr_output_title = ttk.Label(content, text="CURRENT OUTPUT", font=22)
 title_style = ttk.Style()
-title_style.configure("GO.TButton",  foreground="green", background="green")
+title_style.configure("GO.TButton", foreground="green", background="green")
 
 heartbeat_frame = Frame(content, bd=2, relief=RAISED, borderwidth=5)
 
@@ -376,8 +398,8 @@ go_style.configure("GO.TButton", foreground="green", background="green")
 stop_style = ttk.Style()
 stop_style.configure("STOP.TButton", foreground="red", background="red")
 
-#ok = ttk.Button(content, text="Begin Testing", command=onClickStart, style="GO.TButton")
-#cancel = ttk.Button(content, text="Stop", command=onClickStop, style="STOP.TButton")
+# ok = ttk.Button(content, text="Begin Testing", command=onClickStart, style="GO.TButton")
+# cancel = ttk.Button(content, text="Stop", command=onClickStop, style="STOP.TButton")
 
 
 
@@ -393,37 +415,33 @@ cancel = ttk.Button(buttons_frame, text="Stop", command=onClickStop, style="STOP
 ###############
 
 
-testing_status.grid(column=5, row=0,  sticky=W)
+testing_status.grid(column=5, row=0, sticky=W)
 current_testing_status_screenvalue.grid(column=6, row=0, sticky=E)
 
 curr_mode_title.grid(column=0, row=0, sticky=W)
 a_option.grid(column=0, row=1, sticky=W)
-#b_option.grid(column=0, row=2,sticky=W)
+# b_option.grid(column=0, row=2,sticky=W)
 both_option.grid(column=0, row=3, sticky=W)
-bank_mode_frame.grid(column=0, row=1, sticky=W+E+N+S)
-
+bank_mode_frame.grid(column=0, row=1, sticky=W + E + N + S)
 
 # Populate Bank 1 output screen labels and vals
-curr_output_title.grid(column=4, row=0, pady=5, padx=15, sticky=W+E)
+curr_output_title.grid(column=4, row=0, pady=5, padx=15, sticky=W + E)
 
-bank_1_current_output_text.grid(column=0, row=0, padx=15 , sticky=W)
+bank_1_current_output_text.grid(column=0, row=0, padx=15, sticky=W)
 bank_1_current_output_screenvalue.grid(column=1, row=0)
 
-bank_1_volt_output_text.grid(column=0, row=1, padx=15 , sticky=W)
+bank_1_volt_output_text.grid(column=0, row=1, padx=15, sticky=W)
 bank_1_volt_output_screenvalue.grid(column=1, row=1)
 
-bank_1_load_output_text.grid(column=0, row=2,padx=15 , sticky=W)
+bank_1_load_output_text.grid(column=0, row=2, padx=15, sticky=W)
 bank_1_load_output_screenvalue.grid(column=1, row=2)
 
-
-
-bank_2_current_output_text.grid(column=3, row=0, padx=15 , sticky=W)
+bank_2_current_output_text.grid(column=3, row=0, padx=15, sticky=W)
 bank_2_current_output_screenvalue.grid(column=4, row=0)
-bank_2_volt_output_text.grid(column=3, row=1, padx=15 , sticky=W)
+bank_2_volt_output_text.grid(column=3, row=1, padx=15, sticky=W)
 bank_2_volt_output_screenvalue.grid(column=4, row=1)
-bank_2_load_output_text.grid(column=3, row=2, padx=15 , sticky=W)
+bank_2_load_output_text.grid(column=3, row=2, padx=15, sticky=W)
 bank_2_load_output_screenvalue.grid(column=4, row=2)
-
 
 bank_1_heartbeat_text.grid(column=0, row=0, sticky=W)
 bank_1_heartbeat_screenvalue.grid(column=1, row=0, sticky=E)
@@ -431,10 +449,9 @@ bank_1_heartbeat_screenvalue.grid(column=1, row=0, sticky=E)
 bank_2_heartbeat_text.grid(column=0, row=1, sticky=W)
 bank_2_heartbeat_screenvalue.grid(column=1, row=1, sticky=E)
 
-heartbeat_frame.grid(column=5, row=1, columnspan=2, padx=5, pady=5, sticky=W+E+N+S)
+heartbeat_frame.grid(column=5, row=1, columnspan=2, padx=5, pady=5, sticky=W + E + N + S)
 
-bank_output_frame.grid(column=4, row=1, padx=5, pady=5, sticky=W+E+N+S )
-
+bank_output_frame.grid(column=4, row=1, padx=5, pady=5, sticky=W + E + N + S)
 
 run_val.grid(column=1, row=1, sticky=E)
 input_header.grid(column=0, row=3, pady=15, sticky=W)
@@ -443,17 +460,15 @@ current_option.grid(column=0, row=2, sticky=W)
 power_option.grid(column=0, row=3, sticky=W)
 static_option.grid(column=0, row=4, sticky=W)
 predef.grid(column=1, row=4, columnspan=2)
-run_mode_frame.grid(column=0, row=5, sticky=N+S+E+W)
+run_mode_frame.grid(column=0, row=5, sticky=N + S + E + W)
 preprog_mode_frame.grid(column=0, row=6)
 
+# ok.grid(column=8, row=6, sticky=N+S+E+W)
+# cancel.grid(column=8, row=7,  sticky=N+S+E+W)
 
-
-#ok.grid(column=8, row=6, sticky=N+S+E+W)
-#cancel.grid(column=8, row=7,  sticky=N+S+E+W)
-
-ok.grid(column=0, row=0, columnspan=3,  sticky=N+S+E+W)
-cancel.grid(column=0, row=1, columnspan=3, sticky=N+S+E+W)
-buttons_frame.grid(column=4, row=5,  columnspan=3, sticky=N+S+E+W)
+ok.grid(column=0, row=0, columnspan=3, sticky=N + S + E + W)
+cancel.grid(column=0, row=1, columnspan=3, sticky=N + S + E + W)
+buttons_frame.grid(column=4, row=5, columnspan=3, sticky=N + S + E + W)
 
 content.grid(column=0, row=0)
 
