@@ -29,14 +29,14 @@ def setup_serial_ports():
         ser1 = serial.Serial()
         ser1.baudrate = 9600
         ser1.port = Bank1_Port
-        ser1.timeout = 0.5
+        ser1.timeout = 1
         ser1.open()
 
 
         ser2 = serial.Serial()
         ser2.baudrate = 9600
         ser2.port = Bank2_Port
-        ser2.timeout = 0.5
+        ser2.timeout = 1
         ser2.open()
 
         sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
@@ -154,9 +154,9 @@ def queryTDI_ser1(write_str):
             setup_serial_ports()
         if not ser1.is_open == True:
             ser1.open()
-        print(ser1.out_waiting())
+
         sio1.write(write_str)
-        #sio1.flush() # it is buffering. required to get the data out *now*
+        sio1.flush() # it is buffering. required to get the data out *now*
         #time.sleep(0.1)
         strout = str(ser1.readline())
         #ser1.close()
@@ -173,7 +173,7 @@ def queryTDI_ser2(write_str):
             ser2.open()
 
         sio2.write(write_str)
-        #sio2.flush() # it is buffering. required to get the data out *now*
+        sio2.flush() # it is buffering. required to get the data out *now*
         #time.sleep(0.1)
         strout = str(ser2.readline())
         #ser2.close()
@@ -201,7 +201,7 @@ def set_TDI_state_ser1(curr,volt,power,LB_mode,Test_mode):
             pass
 
         #Write the current command
-        #sio1.flush() # it is buffering. required to get the data out *now*
+        sio1.flush() # it is buffering. required to get the data out *now*
         strout = str(sio1.readline())
 
         #time.sleep(0.05)
