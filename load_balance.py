@@ -5,17 +5,17 @@ desired current setpoint and adjusts the feedback to correct for calibration err
 
 
 def factor1(curr, test_mode):
-    if test_mode == "both" :
+    if test_mode == 2 :
         return curr*0.7 # Dual LB calibration curve goes here 
-    elif test_mode == "a_only" :
+    elif test_mode == 1 :
         return curr # Single LB calibration curve goes here 
     else:
         return 0
 
 def factor2(curr, test_mode):
-    if test_mode == "both" :
+    if test_mode == 2 :
         return curr*0.3 # Dual LB calibration curve goes here 
-    elif test_mode == "b_only" :
+    elif test_mode == 3 :
         return curr # Single LB calibration curve goes here 
     else:
         return 0

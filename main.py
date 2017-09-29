@@ -3,8 +3,8 @@ from tkinter import ttk
 from threading import Thread
 
 # Chris uses this for UI Testing
-import dummydeviceconnection as dc
-#import deviceconnection as dc
+#import dummydeviceconnection as dc
+import deviceconnection as dc
 
 #
 #   Create preprogrammed routine variables
@@ -23,11 +23,38 @@ bank2c = "Unk"
 bank1l = "Unk"
 bank2l = "Unk"
 
+
+
 # This holds the index to the routine_1_commands
 routine_pointer = 0
 # This is what will be referenced to check to see if the preprogrammed execution should be continued
 preprog_continue = True
 
+global loadbank1_contact_stat
+loadbank1_contact_stat = False
+
+global loadbank2_contact_stat
+loadbank2_contact_stat=False
+
+global loadbank1_connect_stat
+loadbank1_connect_stat = False
+
+global loadbank2_connect_stat
+loadbank2_connect_stat = False
+
+global loadbank_test_config #0 for null #1 for A #2 for both #3 for B
+loadbank_test_config = 0
+
+global contactor1_SP
+global contactor2_SP
+contactor1_SP = False
+contactor2_SP = False
+
+global  setpoint1
+setpoint1 = [0, 0, 0, 1, loadbank_test_config]
+
+global  setpoint2
+setpoint2 = [0, 0, 0, 1, loadbank_test_config]
 
 def validate_user_value(self, txt):
     print("in the validate_user_value function")
@@ -50,6 +77,10 @@ def run_preprog_mode():
     global preprog_continue
     global routine_1_durations
     global rountine_1_curr
+    global contactor1
+    global contactor2
+    global setpoint1
+    global setpoint2
 
     # Checking to make sure we're still okay to run and we haven't yet hit the end of the command array
     if preprog_continue == True and routine_pointer < len(routine_1_commands):
@@ -57,6 +88,8 @@ def run_preprog_mode():
         Step_duration = routine_1_durations[routine_pointer]
         print("This point is " + str(rountine_1_curr[routine_pointer]) + " Amps for " + str(
             0.001 * Step_duration) + " seconds")
+        setpoint2 = [rountine_1_curr[routine_pointer], 0, 0, 1, loadbank_test_config]
+        setpoint1 = [rountine_1_curr[routine_pointer], 0, 0, 1, loadbank_test_config]
         routine_pointer += 1
         root.after(Step_duration, run_preprog_mode)
     elif preprog_continue == True:  # The script should have ended correctly
@@ -65,40 +98,93 @@ def run_preprog_mode():
         # Reset the routine pointer
         routine_pointer = 0
         preprog_continue = False
-        dc.open_TDI1_contactor()
-        dc.open_TDI2_contactor()
+        contactor1 = False
+        contactor2 = False
 
 # Ultimately it may be better to break this function out into a bank1 getter and a bank2 getter which run concurrently. 
 # This was a simpler way to do it for a proof of concept
 def threaded_retriever_function():
-    global bank1v
-    bank1v = str(dc.getBank1Voltage())
+    try:
+        
+        global loadbank1_connect_stat
+        global loadbank2_connect_stat
+        if loadbank1_connect_stat == False:
+            loadbank1_connect_stat = dc.getBank1ConnStatus()
+        if loadbank2_connect_stat == False:
+            loadbank2_connect_stat = dc.getBank2ConnStatus()
 
-    global bank2v
-    bank2v = str(dc.getBank2Voltage())
+        global bank1v
+        #bank1v = str(dc.getBank1Voltage())
 
-    global bank1c
-    bank1c = str(dc.getBank1Current())
+        global bank2v
+        #bank2v = str(dc.getBank2Voltage())
 
-    global bank2c
-    bank2c = str(dc.getBank2Current())
+        global bank1c
+        bank1c = str(dc.getBank1Current())
 
-    global bank1l
-    bank1l = str(dc.getBank1Load())
+        global bank2c
+        bank2c = str(dc.getBank2Current())
 
-    global bank2l
-    bank2l = str(dc.getBank2Load())
+        global bank1l
+        #bank1l = str(dc.getBank1Load())
 
+        global bank2l
+        #bank2l = str(dc.getBank2Load())
+
+        global loadbank1_contact_stat
+        global loadbank2_contact_stat
+        loadbank1_contact_stat = dc.getBank1Contactor()
+        loadbank2_contact_stat = dc.getBank2Contactor()
+
+        global contactor1_SP
+        global contactor2_SP
+
+        if (contactor1_SP == True) and (loadbank1_contact_stat == False) :
+            dc.close_TDI1_contactor()
+        elif (contactor1_SP == False) and (loadbank1_contact_stat == True) :
+            dc.open_TDI1_contactor()
+
+        if (contactor2_SP == True) and (loadbank2_contact_stat == False) :
+            dc.close_TDI2_contactor()
+        elif (contactor2_SP == False) and (loadbank2_contact_stat == True) :
+            dc.open_TDI2_contactor()
+
+
+        global setpoint1
+        global setpoint2
+
+        dc.set_TDI_state_ser1(setpoint1[0],setpoint1[1],setpoint1[2],setpoint1[3],setpoint1[4])
+        dc.set_TDI_state_ser2(setpoint2[0],setpoint2[1],setpoint2[2],setpoint2[3],setpoint2[4])
+    except Exception as e:
+        print(e)
+        pass
+
+ 
+    print("thread finished...exiting")
 
 
 # This code gets called every "Refresh" period, so in it we'll want to check on the status of both banks to make sure theyre
 # Online as well as to update the UI values of Bank1 and Bank2
 
 def ui_refresh():
+    global setpoint1
+    global setpoint2
+
+    global loadbank_test_config
     print("in the poll_sources function")
     print("Current Mode == " + str(mode.get()))
     if (mode.get() == ""):
         print("User has not picked the test bank mode A,B or A&B")
+        print("User has not picked the test bank mode A,B or A&B")
+        loadbank_test_config=0
+    elif mode.get() == "a_only":
+        loadbank_test_config=1
+    elif mode.get() == "both":
+        loadbank_test_config=2
+    elif mode.get() == "b_only":
+        loadbank_test_config=3
+    else:
+        loadbank_test_config=0
 
     print("Current Run Param == " + str(run_param.get()))
 
@@ -107,14 +193,18 @@ def ui_refresh():
 
     # initializing the bank variables so if dc.get... command doesn't return anything, they wont be uninitialized
     global bank1v
-
+    global thread
     # Instantiating a thread object and kicking it off
-    thread = Thread(target=threaded_retriever_function)
-    thread.start()
+    if thread.isAlive() == False:
+        print("New Thread")
+        thread = Thread(target=threaded_retriever_function)
+        thread.start()
+
+
     #You could add back the join below if you ever wanted to wait for the thread to finish before proceeding
     #thread.join()
     #print("thread finished...exiting")
-
+    #threaded_retriever_function()
     # Getting the bank 1 and bank 2 values upfront so we don't have to query them multiple times within the ui_refresh method
 
     # For the code below to be more accurate when it's printed, it should be moved into the thread
@@ -138,8 +228,7 @@ def ui_refresh():
 
 
     # Check to make sure load bank 1 has not faulted, if so, stop loadbank 2.
-    loadbank1_contact_stat = dc.getBank1Contactor()
-    loadbank2_contact_stat = dc.getBank2Contactor()
+
     global Contactor_LB1_Status_Old
     if (Contactor_LB1_Status_Old == True) & (loadbank1_contact_stat == False):
         onClickStop()
@@ -156,26 +245,32 @@ def ui_refresh():
         loadbank2_contact_stat_str = 'Contactor Closed'
     else:
         loadbank2_contact_stat_str = 'Contactor Open'
-
+    global loadbank1_connect_stat
+    global loadbank2_connect_stat
     # Doing a basic check to see if a bank is online or offline
-    if (dc.getBank1ConnStatus() == True):
+    if (loadbank1_connect_stat == True):
         bank_1_heartbeat_var.set("Online: " + loadbank1_contact_stat_str)
     else:
         bank_1_heartbeat_var.set("Offline ")
-    if (dc.getBank2ConnStatus() == True):
+    if (loadbank1_connect_stat == True):
         bank_2_heartbeat_var.set("Online: " + loadbank2_contact_stat_str)
     else:
         bank_2_heartbeat_var.set("Offline ")
 
     # This is needed to make sure another call to this happens in 5 sec (or .5 sec if 500)
-    root.after(500, ui_refresh)
+    root.after(250, ui_refresh)
 
 
 def print_selected():
     print("Combobox changed")
     preprog_continue = False
-    dc.set_TDI_state_ser1(0, 0, 0, 1, mode.get())
-    dc.set_TDI_state_ser2(0, 0, 0, 1, mode.get())
+    global setpoint1
+    global setpoint2
+
+    #setpoint1 = [0, 0, 0, 1, loadbank_test_config]
+    #setpoint2 = [0, 0, 0, 1, loadbank_test_config]
+    #dc.set_TDI_state_ser1(0, 0, 0, 1, mode.get())
+    #dc.set_TDI_state_ser2(0, 0, 0, 1, mode.get())
     ## Call to zero load
     # State of the combo box will need to be known later but for now we just want to put
     # the load bank in a safe mode
@@ -185,12 +280,17 @@ def print_selected():
 def onClickStart():
     print("Start Button Pressed")
 
+    global setpoint1
+    global setpoint2
+    global contactor1_SP
+    global contactor2_SP
+
     # Set the current to zero amps
-    dc.set_TDI_state_ser1(0, 0, 0, 1, mode.get())
-    dc.set_TDI_state_ser2(0, 0, 0, 1, mode.get())
+    setpoint1 = [0, 0, 0, 1, loadbank_test_config]
+    setpoint2 = [0, 0, 0, 1, loadbank_test_config]
     # Close both contactors
-    dc.close_TDI1_contactor()
-    dc.close_TDI2_contactor()
+    contactor1_SP = True
+    contactor2_SP = True
     # If the combobox is set to a script fire that off
     global preprog_continue
 
@@ -216,13 +316,17 @@ def onClickStop():
         preprog_continue = False
         routine_pointer = 0
 
-    ## Call to zero load
-    dc.set_TDI_state_ser1(0, 0, 0, 1, mode.get())
-    dc.set_TDI_state_ser2(0, 0, 0, 1, mode.get())
-    sv.set(0)
-    ## Call to open contactor
-    dc.open_TDI1_contactor()
-    dc.open_TDI2_contactor()
+    global setpoint1
+    global setpoint2
+    global contactor1
+    global contactor2
+
+    # Set the current to zero amps
+    setpoint1 = [0, 0, 0, 1, loadbank_test_config]
+    setpoint2 = [0, 0, 0, 1, loadbank_test_config]
+    # Open both contactors
+    contactor1_SP = False
+    contactor2_SP = False
 
 
 # This checks the value of the user input box for Voltage Current or Power
@@ -259,16 +363,31 @@ def fetch():
     new_value = run_val.get()
     print("Input => " + str(run_val.get()))  # get text
 
-    if run_param.get() == 'c_selected':
-        dc.set_TDI_state_ser1(float(new_value), 0, 0, 1, mode.get())
-        dc.set_TDI_state_ser2(float(new_value), 0, 0, 1, mode.get())
-    elif run_param.get() == 'v_selected':
-        dc.set_TDI_state_ser1(0, float(new_value), 0, 2, mode.get())
-        dc.set_TDI_state_ser2(0, float(new_value), 0, 2, mode.get())
-    elif run_param.get() == 'pow_selected':
-        dc.set_TDI_state_ser1(0, 0, float(new_value), 3, mode.get())
-        dc.set_TDI_state_ser2(0, 0, float(new_value), 3, mode.get())
+    global setpoint1
+    global setpoint2
+    global request_pending
+    request_pending = True
+    global mode
 
+    # Set the current to zero amps
+    #setpoint1 = [0, 0, 0, 1, loadbank_test_config]
+    #setpoint2 = [0, 0, 0, 1, loadbank_test_config]
+
+    if run_param.get() == 'c_selected':
+        setpoint1 = [float(new_value), 0, 0, 1, loadbank_test_config] #dc.set_TDI_state_ser1(float(new_value), 0, 0, 1, mode.get())
+        setpoint2 = [float(new_value), 0, 0, 1, loadbank_test_config] #dc.set_TDI_state_ser1(float(new_value), 0, 0, 1, mode.get())
+    elif run_param.get() == 'v_selected':
+        setpoint1 = [0, float(new_value), 0, 2, loadbank_test_config] #dc.set_TDI_state_ser1(0, float(new_value), 0, 2, mode.get())
+        setpoint2 = [0, float(new_value), 0, 2, loadbank_test_config] #dc.set_TDI_state_ser2(0, float(new_value), 0, 2, mode.get())
+    elif run_param.get() == 'pow_selected':
+        setpoint1 = [0, 0, float(new_value), 3, loadbank_test_config] #dc.set_TDI_state_ser1(0, 0, float(new_value), 3, mode.get())
+        setpoint2 = [0, 0, float(new_value), 3, loadbank_test_config] #dc.set_TDI_state_ser2(0, 0, float(new_value), 3, mode.get())
+
+        
+
+
+#Establish the first thread number
+thread = Thread(target=threaded_retriever_function)
 
 root = Tk()
 root.title("Battery Testing Application v0.1")
@@ -481,6 +600,6 @@ contact_info.grid(column=5, row=9, columnspan=3, sticky=E)
 ###############
 
 # Kick off the initial refresh sequence - lower to equal 500 to do it every .5 sec
-root.after(500, ui_refresh)
+root.after(2000, ui_refresh)
 
 root.mainloop()
