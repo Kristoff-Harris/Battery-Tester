@@ -101,48 +101,100 @@ def run_preprog_mode():
         contactor1 = False
         contactor2 = False
 
-# Ultimately it may be better to break this function out into a bank1 getter and a bank2 getter which run concurrently. 
-# This was a simpler way to do it for a proof of concept
-def threaded_retriever_function():
+
+
+def threaded_retriever_function_a():
     try:
-        
+ 
+        global setpoint1
         global loadbank1_connect_stat
-        global loadbank2_connect_stat
+        
         if loadbank1_connect_stat == False:
             loadbank1_connect_stat = dc.getBank1ConnStatus()
-        if loadbank2_connect_stat == False:
-            loadbank2_connect_stat = dc.getBank2ConnStatus()
 
-        global bank1v
+        #global bank1v
         #bank1v = str(dc.getBank1Voltage())
 
-        global bank2v
+        #global bank2v
         #bank2v = str(dc.getBank2Voltage())
 
         global bank1c
-        bank1c = str(dc.getBank1Current())
+        #bank1c = str(dc.getBank1Current())
 
-        global bank2c
-        bank2c = str(dc.getBank2Current())
+        #global bank2c
+        #bank2c = str(dc.getBank2Current())
 
         global bank1l
         #bank1l = str(dc.getBank1Load())
+        #bank1l = str(setpoint1[0])
 
-        global bank2l
+        #global bank2l
         #bank2l = str(dc.getBank2Load())
 
         global loadbank1_contact_stat
-        global loadbank2_contact_stat
         loadbank1_contact_stat = dc.getBank1Contactor()
-        loadbank2_contact_stat = dc.getBank2Contactor()
 
         global contactor1_SP
-        global contactor2_SP
 
         if (contactor1_SP == True) and (loadbank1_contact_stat == False) :
             dc.close_TDI1_contactor()
         elif (contactor1_SP == False) and (loadbank1_contact_stat == True) :
             dc.open_TDI1_contactor()
+
+
+
+        bank1l = dc.set_TDI_state_ser1(setpoint1[0],setpoint1[1],setpoint1[2],setpoint1[3],setpoint1[4])
+
+    except Exception as e:
+        print(e)
+        pass
+
+ 
+    print("thread a finished...exiting")
+
+
+def threaded_retriever_function_b():
+    try:
+
+
+        global setpoint2
+
+        
+        global loadbank2_connect_stat
+        if loadbank2_connect_stat == False:
+            loadbank2_connect_stat = dc.getBank2ConnStatus()
+
+        #global bank1v
+        #bank1v = str(dc.getBank1Voltage())
+
+        global bank2v
+        #bank2v = str(dc.getBank2Voltage())
+
+        #global bank1c
+        #bank1c = str(dc.getBank1Current())
+
+        global bank2c
+        bank2c = str(dc.getBank2Current())
+
+        #global bank1l
+        #bank1l = str(dc.getBank1Load())
+
+        global bank2l
+        #bank2l = str(dc.getBank2Load())
+        #bank2l = str(setpoint2[0])
+
+        #global loadbank1_contact_stat
+        global loadbank2_contact_stat
+        #loadbank1_contact_stat = dc.getBank1Contactor()
+        loadbank2_contact_stat = dc.getBank2Contactor()
+
+        #global contactor1_SP
+        global contactor2_SP
+
+        #if (contactor1_SP == True) and (loadbank1_contact_stat == False) :
+        #    dc.close_TDI1_contactor()
+       # elif (contactor1_SP == False) and (loadbank1_contact_stat == True) :
+       #     dc.open_TDI1_contactor()
 
         if (contactor2_SP == True) and (loadbank2_contact_stat == False) :
             dc.close_TDI2_contactor()
@@ -150,18 +202,16 @@ def threaded_retriever_function():
             dc.open_TDI2_contactor()
 
 
-        global setpoint1
-        global setpoint2
+        #global setpoint1
 
-        dc.set_TDI_state_ser1(setpoint1[0],setpoint1[1],setpoint1[2],setpoint1[3],setpoint1[4])
-        dc.set_TDI_state_ser2(setpoint2[0],setpoint2[1],setpoint2[2],setpoint2[3],setpoint2[4])
+        #dc.set_TDI_state_ser1(setpoint1[0],setpoint1[1],setpoint1[2],setpoint1[3],setpoint1[4])
+        bank2l = dc.set_TDI_state_ser2(setpoint2[0],setpoint2[1],setpoint2[2],setpoint2[3],setpoint2[4])
     except Exception as e:
         print(e)
         pass
 
  
-    print("thread finished...exiting")
-
+    print("thread b finished...exiting")
 
 # This code gets called every "Refresh" period, so in it we'll want to check on the status of both banks to make sure theyre
 # Online as well as to update the UI values of Bank1 and Bank2
@@ -190,15 +240,29 @@ def ui_refresh():
 
     if (run_param.get() == "preprog_selected"):
         print("Pre-Prog Mode == " + str(predefinedmodevar.get()))
-
+    """
     # initializing the bank variables so if dc.get... command doesn't return anything, they wont be uninitialized
-    global bank1v
     global thread
     # Instantiating a thread object and kicking it off
     if thread.isAlive() == False:
         print("New Thread")
         thread = Thread(target=threaded_retriever_function)
         thread.start()
+    """
+
+    global thread_a
+    # Instantiating a thread object and kicking it off
+    if thread_a.isAlive() == False:
+        print("New Thread_a")
+        thread_a = Thread(target=threaded_retriever_function_a)
+        thread_a.start()
+
+    global thread_b
+    # Instantiating a thread object and kicking it off
+    if thread_b.isAlive() == False:
+        print("New Thread_b")
+        thread_b = Thread(target=threaded_retriever_function_b)
+        thread_b.start()
 
 
     #You could add back the join below if you ever wanted to wait for the thread to finish before proceeding
@@ -387,7 +451,9 @@ def fetch():
 
 
 #Establish the first thread number
-thread = Thread(target=threaded_retriever_function)
+#thread = Thread(target=threaded_retriever_function)
+thread_a = Thread(target=threaded_retriever_function_a)
+thread_b = Thread(target=threaded_retriever_function_b)
 
 root = Tk()
 root.title("Battery Testing Application v0.1")

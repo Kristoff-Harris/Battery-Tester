@@ -1,7 +1,8 @@
 #-------------------------------------------------------------------------------------------------------------
 # File          : deviceconnection.py
 # Create Date   : 9/9/2017
-# Purpose       : Houses the code which connects to the bank IEEE
+# Purpose       : Houses the code which connects to the bank serial connection.  Each load bank connection is designed to be 
+#                 called in a different thread. 
 #
 #-------------------------------------------------------------------------------------------------------------
 
@@ -13,6 +14,11 @@ import load_balance as lb
 
 global setup_complete
 setup_complete = False
+
+global setup_complete_a
+global setup_complete_b
+setup_complete_a = False
+setup_complete_b = False
 
 def setup_serial_ports():
     global setup_complete
@@ -54,6 +60,55 @@ def setup_serial_ports():
     except Exception as e:
         print(e)
         pass
+
+
+def setup_serial_ports_a():
+    global setup_complete_a
+    global ser1
+    global sio1
+    setup_complete_a = False
+    try:
+        #Static definition of COM Ports, maybe more elegant solution is possible in the future. 
+        Bank1_Port='COM9' # This is the port of the WCL232 100-1000-12000
+
+        #Define Serial Aliases 
+        ser1 = serial.Serial()
+        ser1.baudrate = 9600
+        ser1.port = Bank1_Port
+        ser1.timeout = 1
+        ser1.open()
+        sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
+        setup_complete_a = True
+        
+    # Dan, If you're interested in seeing what the exception was, use this syntax. It may be helpful for debugging
+    except Exception as e:
+        print(e)
+        pass
+
+
+
+def setup_serial_ports_b():
+    global setup_complete_b
+    global ser2
+    global sio2
+    setup_complete_b = False
+
+    try: 
+        Bank2_Port='COM8'  #This is the port of the WCL488 400-200-6000
+        ser2 = serial.Serial()
+        ser2.baudrate = 9600
+        ser2.port = Bank2_Port
+        ser2.timeout = 1
+        ser2.open()
+        sio2 = io.TextIOWrapper(io.BufferedRWPair(ser2, ser2,1),encoding='ascii')
+        if setup_complete_a == True: #If A also made it, we are done, setup is complete
+            setup_complete = True
+
+    # Dan, If you're interested in seeing what the exception was, use this syntax. It may be helpful for debugging
+    except Exception as e:
+        print(e)
+        pass
+
 
 #  Ultimately your call but my thought is to return True if we can successfully connect to the Bank IEEE interface and
 # False if we cannot
@@ -161,9 +216,9 @@ def getBank2Contactor():
 
 def queryTDI_ser1(write_str):
     try:
-        global setup_complete
-        if not setup_complete:
-            setup_serial_ports()
+        global setup_complete_a
+        if not setup_complete_a:
+            setup_serial_ports_a()
         if not ser1.is_open == True:
             ser1.open()
 
@@ -184,8 +239,8 @@ def queryTDI_ser1(write_str):
 
 def queryTDI_ser2(write_str):
     try:
-        if not setup_complete == True:
-            setup_serial_ports()
+        if not setup_complete_b == True:
+            setup_serial_ports_b()
         if not ser2.is_open:
             ser2.open()
 
@@ -212,12 +267,15 @@ def set_TDI_state_ser1(curr,volt,power,LB_mode,Test_mode):
             range_request = lb.range1(current_request)
             #write_str = (str("RNG ") + str(range_request) +str("\n") + str("CI ") + str(current_request) + str("\n"))
             write_str = (str("CI ") + str(current_request)[:5] + str("\n"))
+            return str(current_request)
         elif LB_mode == 2:
             #sio2.write(str("CV "+volt+"\n"))
             write_str = (str("CV ")+ str(volt) + str("\n"))
+            return str(volt)
         elif LB_mode == 3:
             #sio2.write(str("CP "+power+"\n"))
             write_str = (str("CP ")+ str(power) + str("\n"))
+            return str(power)
         else:
             pass
         sio1.flush() #
@@ -233,7 +291,9 @@ def set_TDI_state_ser1(curr,volt,power,LB_mode,Test_mode):
 
         #time.sleep(0.2)
         #ser1.close()
-    except:
+    except Exception as e:
+        print(e)
+        return str(" ")
         pass
     return 
 
@@ -250,12 +310,15 @@ def set_TDI_state_ser2(curr,volt,power,LB_mode,Test_mode):
             range_request = lb.range2(current_request)
             #write_str = (str("RNG ") + str(range_request) +str("\n") + str("CI ") + str(current_request) + str("\n"))
             write_str = (str("CI ") + str(current_request)[:5]  + str("\n"))
+            return str(current_request)
         elif LB_mode == 2:
             #sio2.write(str("CV "+volt+"\n"))
             write_str = (str("CV ")+ str(volt) + str("\n"))
+            return str(volt)
         elif LB_mode == 3:
             #sio2.write(str("CP "+power+"\n"))
             write_str = (str("CP ")+ str(power) + str("\n"))
+            return str(power)
         else:
             pass
         sio2.flush()
@@ -269,7 +332,9 @@ def set_TDI_state_ser2(curr,volt,power,LB_mode,Test_mode):
         #strout = str(sio2.readline())
         #time.sleep(0.05)
         #ser2.close()
-    except:
+    except Exception as e:
+        print(e)
+        return str(" ")
         pass
     return 
 
