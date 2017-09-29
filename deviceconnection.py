@@ -76,6 +76,7 @@ def setup_serial_ports_a():
         ser1.baudrate = 9600
         ser1.port = Bank1_Port
         ser1.timeout = 1
+        ser1.close()
         ser1.open()
         sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
         setup_complete_a = True
@@ -99,6 +100,7 @@ def setup_serial_ports_b():
         ser2.baudrate = 9600
         ser2.port = Bank2_Port
         ser2.timeout = 1
+        ser.close()
         ser2.open()
         sio2 = io.TextIOWrapper(io.BufferedRWPair(ser2, ser2,1),encoding='ascii')
         if setup_complete_a == True: #If A also made it, we are done, setup is complete
@@ -267,15 +269,16 @@ def set_TDI_state_ser1(curr,volt,power,LB_mode,Test_mode):
             range_request = lb.range1(current_request)
             #write_str = (str("RNG ") + str(range_request) +str("\n") + str("CI ") + str(current_request) + str("\n"))
             write_str = (str("CI ") + str(current_request)[:5] + str("\n"))
-            return str(current_request)
+            return str(current_request)[:5]
         elif LB_mode == 2:
             #sio2.write(str("CV "+volt+"\n"))
             write_str = (str("CV ")+ str(volt) + str("\n"))
             return str(volt)
         elif LB_mode == 3:
             #sio2.write(str("CP "+power+"\n"))
-            write_str = (str("CP ")+ str(power) + str("\n"))
-            return str(power)
+            power_request = lb.factor1(power,Test_mode)
+            write_str = (str("CP ")+ str(power_request)[:6] + str("\n"))
+            return str(power_request)[:6]
         else:
             pass
         sio1.flush() #
@@ -310,15 +313,16 @@ def set_TDI_state_ser2(curr,volt,power,LB_mode,Test_mode):
             range_request = lb.range2(current_request)
             #write_str = (str("RNG ") + str(range_request) +str("\n") + str("CI ") + str(current_request) + str("\n"))
             write_str = (str("CI ") + str(current_request)[:5]  + str("\n"))
-            return str(current_request)
+            return str(current_request)[:5]
         elif LB_mode == 2:
             #sio2.write(str("CV "+volt+"\n"))
             write_str = (str("CV ")+ str(volt) + str("\n"))
             return str(volt)
         elif LB_mode == 3:
             #sio2.write(str("CP "+power+"\n"))
-            write_str = (str("CP ")+ str(power) + str("\n"))
-            return str(power)
+            power_request = lb.factor2(power,Test_mode)
+            write_str = (str("CP ")+ str(power_request)[:6] + str("\n"))
+            return str(power_request)[:6]
         else:
             pass
         sio2.flush()
