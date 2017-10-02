@@ -98,7 +98,7 @@ def setup_serial_ports_b():
         ser2.baudrate = 9600
         ser2.port = Bank2_Port
         ser2.timeout = 1
-        ser.close()
+        ser2.close()
         ser2.open()
         sio2 = io.TextIOWrapper(io.BufferedRWPair(ser2, ser2,1),encoding='ascii')
         if setup_complete_a == True: #If A also made it, we are done, setup is complete
