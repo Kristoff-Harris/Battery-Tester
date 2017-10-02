@@ -80,8 +80,6 @@ def setup_serial_ports_a():
         ser1.open()
         sio1 = io.TextIOWrapper(io.BufferedRWPair(ser1, ser1,1),encoding='ascii')
         setup_complete_a = True
-        
-    # Dan, If you're interested in seeing what the exception was, use this syntax. It may be helpful for debugging
     except Exception as e:
         print(e)
         pass
@@ -105,8 +103,6 @@ def setup_serial_ports_b():
         sio2 = io.TextIOWrapper(io.BufferedRWPair(ser2, ser2,1),encoding='ascii')
         if setup_complete_a == True: #If A also made it, we are done, setup is complete
             setup_complete = True
-
-    # Dan, If you're interested in seeing what the exception was, use this syntax. It may be helpful for debugging
     except Exception as e:
         print(e)
         pass

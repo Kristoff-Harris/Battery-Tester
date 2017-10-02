@@ -2,8 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from threading import Thread
 
-# Chris uses this for UI Testing
-#import dummydeviceconnection as dc
+
 import deviceconnection as dc
 
 #
@@ -16,10 +15,10 @@ routine_1_durations = [1000, 20000, 5000, 2000, 5000]
 rountine_1_curr = [0, 320, 0, 440, 0]
 
 
-bank1v = "Unk"
-bank2v = "Unk"
-bank1c = "Unk"
-bank2c = "Unk"
+bank1v = ""
+bank2v = ""
+bank1c = ""
+bank2c = ""
 bank1l = "Unk"
 bank2l = "Unk"
 
@@ -57,7 +56,7 @@ global  setpoint2
 setpoint2 = [0, 0, 0, 1, loadbank_test_config]
 
 def validate_user_value(self, txt):
-    print("in the validate_user_value function")
+    #print("in the validate_user_value function")
     if not txt:  # Do not accept an empty string
         return False
 
@@ -81,6 +80,9 @@ def run_preprog_mode():
     global contactor2
     global setpoint1
     global setpoint2
+
+    test_indx=predef.get()[0] #Get the first character of the script name, this is the indx of the test to be run.
+
 
     # Checking to make sure we're still okay to run and we haven't yet hit the end of the command array
     if preprog_continue == True and routine_pointer < len(routine_1_commands):
@@ -150,7 +152,7 @@ def threaded_retriever_function_a():
         pass
 
  
-    print("thread a finished...exiting")
+    #print("thread a finished...exiting")
 
 
 def threaded_retriever_function_b():
@@ -167,14 +169,14 @@ def threaded_retriever_function_b():
         #global bank1v
         #bank1v = str(dc.getBank1Voltage())
 
-        global bank2v
+        #global bank2v
         #bank2v = str(dc.getBank2Voltage())
 
         #global bank1c
         #bank1c = str(dc.getBank1Current())
 
-        global bank2c
-        bank2c = str(dc.getBank2Current())
+        #global bank2c
+        #bank2c = str(dc.getBank2Current())
 
         #global bank1l
         #bank1l = str(dc.getBank1Load())
@@ -211,7 +213,7 @@ def threaded_retriever_function_b():
         pass
 
  
-    print("thread b finished...exiting")
+    #print("thread b finished...exiting")
 
 # This code gets called every "Refresh" period, so in it we'll want to check on the status of both banks to make sure theyre
 # Online as well as to update the UI values of Bank1 and Bank2
@@ -221,11 +223,11 @@ def ui_refresh():
     global setpoint2
 
     global loadbank_test_config
-    print("in the poll_sources function")
-    print("Current Mode == " + str(mode.get()))
+    #print("in the poll_sources function")
+    #print("Current Mode == " + str(mode.get()))
     if (mode.get() == ""):
-        print("User has not picked the test bank mode A,B or A&B")
-        print("User has not picked the test bank mode A,B or A&B")
+        #print("User has not picked the test bank mode A,B or A&B")
+        #print("User has not picked the test bank mode A,B or A&B")
         loadbank_test_config=0
     elif mode.get() == "a_only":
         loadbank_test_config=1
@@ -236,10 +238,10 @@ def ui_refresh():
     else:
         loadbank_test_config=0
 
-    print("Current Run Param == " + str(run_param.get()))
+    #print("Current Run Param == " + str(run_param.get()))
 
-    if (run_param.get() == "preprog_selected"):
-        print("Pre-Prog Mode == " + str(predefinedmodevar.get()))
+    #if (run_param.get() == "preprog_selected"):
+        #print("Pre-Prog Mode == " + str(predefinedmodevar.get()))
     """
     # initializing the bank variables so if dc.get... command doesn't return anything, they wont be uninitialized
     global thread
@@ -253,14 +255,14 @@ def ui_refresh():
     global thread_a
     # Instantiating a thread object and kicking it off
     if thread_a.isAlive() == False:
-        print("New Thread_a")
+        #print("New Thread_a")
         thread_a = Thread(target=threaded_retriever_function_a)
         thread_a.start()
 
     global thread_b
     # Instantiating a thread object and kicking it off
     if thread_b.isAlive() == False:
-        print("New Thread_b")
+        #print("New Thread_b")
         thread_b = Thread(target=threaded_retriever_function_b)
         thread_b.start()
 
@@ -270,7 +272,7 @@ def ui_refresh():
     #print("thread finished...exiting")
     #threaded_retriever_function()
     # Getting the bank 1 and bank 2 values upfront so we don't have to query them multiple times within the ui_refresh method
-
+    """
     # For the code below to be more accurate when it's printed, it should be moved into the thread
     print("Bank1Voltage == " + bank1v)
     print("Bank2Voltage == " + bank2v)
@@ -278,7 +280,7 @@ def ui_refresh():
     print("Bank2Current == " + bank2c)
     print("Bank1Load == " + bank1l)
     print("Bank2Load == " + bank2l)
-
+    """
     # Assigning the UI values
     bank_1_current_output_var.set(bank1c)
     bank_1_volt_output_var.set(bank1v)
@@ -326,7 +328,7 @@ def ui_refresh():
 
 
 def print_selected():
-    print("Combobox changed")
+    #print("Combobox changed")
     preprog_continue = False
     global setpoint1
     global setpoint2
@@ -369,7 +371,7 @@ def onClickStart():
 
 # Fires when someone clicks the "stop" button
 def onClickStop():
-    print("Stop Button Pressed")
+    #print("Stop Button Pressed")
     current_testing_status.set("Stopped")
 
     global preprog_continue
@@ -395,7 +397,7 @@ def onClickStop():
 
 # This checks the value of the user input box for Voltage Current or Power
 def validate_float(var):
-    print("in the validate_float() function")
+    #print("in the validate_float() function")
     old_value = ''
     new_value = var.get()
     try:
@@ -425,7 +427,7 @@ def validate_float(var):
 
 def fetch():
     new_value = run_val.get()
-    print("Input => " + str(run_val.get()))  # get text
+    #print("Input => " + str(run_val.get()))  # get text
 
     global setpoint1
     global setpoint2
@@ -433,9 +435,6 @@ def fetch():
     request_pending = True
     global mode
 
-    # Set the current to zero amps
-    #setpoint1 = [0, 0, 0, 1, loadbank_test_config]
-    #setpoint2 = [0, 0, 0, 1, loadbank_test_config]
 
     if run_param.get() == 'c_selected':
         setpoint1 = [float(new_value), 0, 0, 1, loadbank_test_config] #dc.set_TDI_state_ser1(float(new_value), 0, 0, 1, mode.get())
@@ -456,7 +455,7 @@ thread_a = Thread(target=threaded_retriever_function_a)
 thread_b = Thread(target=threaded_retriever_function_b)
 
 root = Tk()
-root.title("Battery Testing Application v0.1")
+root.title("Battery Testing Application v1.0")
 content = ttk.Frame(root, padding=(20, 20, 12, 12))
 
 sv = StringVar()
@@ -495,7 +494,7 @@ global predefinedmodevar
 predefinedmodevar = StringVar()
 predef = ttk.Combobox(preprog_mode_frame, textvariable=predefinedmodevar)
 predef.bind('<<ComboboxSelected>>', print_selected())
-predef['values'] = ('320A / 440A', 'Pre-defined 2', 'Pre-defined 3')
+predef['values'] = ('1: 440A / 320A', '2:Placeholder')#, '2: 320A/20Sec', '3: 440A/2Sec')
 
 ###############
 #
@@ -549,14 +548,18 @@ heartbeat_frame = Frame(content, bd=2, relief=RAISED, borderwidth=5)
 
 bank_output_frame = Frame(content, bd=2, relief=RAISED, borderwidth=5)
 
-# Creating Text Labels for reach bank value
-bank_1_current_output_text = ttk.Label(bank_output_frame, text="B1 Curr:")
-bank_1_volt_output_text = ttk.Label(bank_output_frame, text="B1 V: ")
-bank_1_load_output_text = ttk.Label(bank_output_frame, text="B1 Power: ")
+# Creating Text Labels for reach bank value,  Note for execution speed, feedback of values is commented out
+#bank_1_current_output_text = ttk.Label(bank_output_frame, text="B1 Curr:")
+#bank_1_volt_output_text = ttk.Label(bank_output_frame, text="B1 V: ")
+bank_1_current_output_text = ttk.Label(bank_output_frame, text="")
+bank_1_volt_output_text = ttk.Label(bank_output_frame, text="")
+bank_1_load_output_text = ttk.Label(bank_output_frame, text="B1 Set Point: ")
 bank_1_heartbeat_text = ttk.Label(heartbeat_frame, text="B1 Status:")
-bank_2_current_output_text = ttk.Label(bank_output_frame, text="B2 Curr:")
-bank_2_volt_output_text = ttk.Label(bank_output_frame, text="B2 V:")
-bank_2_load_output_text = ttk.Label(bank_output_frame, text="B2 Power:")
+#bank_2_current_output_text = ttk.Label(bank_output_frame, text="B2 Curr:")
+#bank_2_volt_output_text = ttk.Label(bank_output_frame, text="B2 V:")
+bank_2_current_output_text = ttk.Label(bank_output_frame, text="")
+bank_2_volt_output_text = ttk.Label(bank_output_frame, text="")
+bank_2_load_output_text = ttk.Label(bank_output_frame, text="B2 Set Point:")
 bank_2_heartbeat_text = ttk.Label(heartbeat_frame, text="B2 Status:")
 
 # Setting the screenvalue and default value (Seen at startup) of each bank value to be displayed on screen

@@ -27,7 +27,7 @@ def range1(curr):
 def range2(curr):
     #For this application only using one range
     return 2 #200V 200A
-###Reminder, need to set the load bank range!
+
 """
 RNG  x  Set the range (1-9) 
  
@@ -35,4 +35,4 @@ RNG  x  Set the range (1-9)
 Range Voltage Current 1 HI HI 2 MED HI 3 LOW HI 4 HI MED 5 MED MED 6 LOW MED 7 HI LOW 8 MED LOW 9 LOW LOW 
 """
 
-#def multiplier_A(Current_SP):
+
