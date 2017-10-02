@@ -20,6 +20,7 @@ global setup_complete_b
 setup_complete_a = False
 setup_complete_b = False
 
+"""
 def setup_serial_ports():
     global setup_complete
     global ser1
@@ -60,7 +61,7 @@ def setup_serial_ports():
     except Exception as e:
         print(e)
         pass
-
+"""
 
 def setup_serial_ports_a():
     global setup_complete_a
@@ -101,8 +102,8 @@ def setup_serial_ports_b():
         ser2.close()
         ser2.open()
         sio2 = io.TextIOWrapper(io.BufferedRWPair(ser2, ser2,1),encoding='ascii')
-        if setup_complete_a == True: #If A also made it, we are done, setup is complete
-            setup_complete = True
+        setup_complete_b = True #If A also made it, we are done, setup is complete
+        
     except Exception as e:
         print(e)
         pass
@@ -265,18 +266,19 @@ def set_TDI_state_ser1(curr,volt,power,LB_mode,Test_mode):
             range_request = lb.range1(current_request)
             #write_str = (str("RNG ") + str(range_request) +str("\n") + str("CI ") + str(current_request) + str("\n"))
             write_str = (str("CI ") + str(current_request)[:5] + str("\n"))
-            return str(current_request)[:5]
+            msg_str = str(current_request)[:5]
         elif LB_mode == 2:
             #sio2.write(str("CV "+volt+"\n"))
             write_str = (str("CV ")+ str(volt) + str("\n"))
-            return str(volt)
+            msg_str = str(volt)
         elif LB_mode == 3:
             #sio2.write(str("CP "+power+"\n"))
             power_request = lb.factor1(power,Test_mode)
             write_str = (str("CP ")+ str(power_request)[:6] + str("\n"))
-            return str(power_request)[:6]
+            msg_str = str(power_request)[:6]
         else:
             pass
+            msg_str = ""
         sio1.flush() #
         ser1.flush()
         sio1.write(write_str)
@@ -294,7 +296,7 @@ def set_TDI_state_ser1(curr,volt,power,LB_mode,Test_mode):
         print(e)
         return str(" ")
         pass
-    return 
+    return msg_str
 
 
 def set_TDI_state_ser2(curr,volt,power,LB_mode,Test_mode):
@@ -309,18 +311,20 @@ def set_TDI_state_ser2(curr,volt,power,LB_mode,Test_mode):
             range_request = lb.range2(current_request)
             #write_str = (str("RNG ") + str(range_request) +str("\n") + str("CI ") + str(current_request) + str("\n"))
             write_str = (str("CI ") + str(current_request)[:5]  + str("\n"))
-            return str(current_request)[:5]
+            msg_str = str(current_request)[:5]
         elif LB_mode == 2:
             #sio2.write(str("CV "+volt+"\n"))
             write_str = (str("CV ")+ str(volt) + str("\n"))
-            return str(volt)
+            msg_str = str(volt)
         elif LB_mode == 3:
             #sio2.write(str("CP "+power+"\n"))
             power_request = lb.factor2(power,Test_mode)
             write_str = (str("CP ")+ str(power_request)[:6] + str("\n"))
-            return str(power_request)[:6]
+            msg_str = str(power_request)[:6]
         else:
+            msg_str = " "
             pass
+
         sio2.flush()
         ser2.flush()
         sio2.write(write_str)
@@ -333,10 +337,10 @@ def set_TDI_state_ser2(curr,volt,power,LB_mode,Test_mode):
         #time.sleep(0.05)
         #ser2.close()
     except Exception as e:
+        msg_str = " "
         print(e)
-        return str(" ")
         pass
-    return 
+    return msg_str
 
 def open_TDI1_contactor():
     try:

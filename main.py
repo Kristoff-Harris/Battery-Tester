@@ -669,6 +669,6 @@ contact_info.grid(column=5, row=9, columnspan=3, sticky=E)
 ###############
 
 # Kick off the initial refresh sequence - lower to equal 500 to do it every .5 sec
-root.after(2000, ui_refresh)
+root.after(250, ui_refresh)
 
 root.mainloop()
